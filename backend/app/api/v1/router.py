@@ -4,6 +4,7 @@ GuardianEye API v1 Master Router
 from fastapi import APIRouter
 from backend.app.api.v1 import (
     alerts,
+    analytics,
     auth,
     behaviours,
     evidence,
@@ -49,4 +50,7 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(
     replay.router, prefix="/replay", tags=["Replay"]
+)
+api_v1_router.include_router(
+    analytics.router, prefix="/analytics", tags=["Analytics"]
 )
