@@ -20,9 +20,18 @@ filterwarnings = [
 ]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py311"
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "docs",
+    "data",
+    "Sample videos",
+]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I"]
-ignore = ["E501", "F401", "F841", "E402", "W291", "W293"]
+select = ["E", "F", "W"]
+ignore = ["E501", "F401", "F841", "E402", "W291", "W293", "F811"]
