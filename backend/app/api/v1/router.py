@@ -4,6 +4,7 @@ GuardianEye API v1 Master Router
 from fastapi import APIRouter
 from backend.app.api.v1 import (
     auth,
+    behaviours,
     health,
     interactions,
     storage,
@@ -25,4 +26,7 @@ api_v1_router.include_router(tracks.router, prefix="/tracks", tags=["Tracking"])
 api_v1_router.include_router(zones.router, prefix="/zones", tags=["Zones"])
 api_v1_router.include_router(
     interactions.router, prefix="/interactions", tags=["Interactions"]
+)
+api_v1_router.include_router(
+    behaviours.router, prefix="/behaviours", tags=["Behaviours"]
 )
