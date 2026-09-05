@@ -5,8 +5,10 @@ from fastapi import APIRouter
 from backend.app.api.v1 import (
     alerts,
     analytics,
+    assistant,
     auth,
     behaviours,
+    digital_twin,
     evidence,
     health,
     incidents,
@@ -53,4 +55,10 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(
     analytics.router, prefix="/analytics", tags=["Analytics"]
+)
+api_v1_router.include_router(
+    digital_twin.router, prefix="/digital-twin", tags=["Digital Twin"]
+)
+api_v1_router.include_router(
+    assistant.router, prefix="/assistant", tags=["Assistant Copilot"]
 )
