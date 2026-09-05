@@ -1,7 +1,7 @@
 """
 Level 02 Backend Foundation Verification Tests
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.app.core.config import Settings
 from backend.app.core.errors import (
     APIErrorResponse,
@@ -46,7 +46,7 @@ def test_health_schema_validation():
         status="healthy",
         version="1.0.0",
         environment="test",
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         subsystems={
             "database": SubsystemHealth(status="healthy", latency_ms=1.5),
             "ai_engine": SubsystemHealth(status="healthy", latency_ms=4.2),
