@@ -30,8 +30,6 @@ numpy>=1.26.4
 opencv-python-headless>=4.9.0.80
 Pillow>=10.3.0
 ultralytics>=8.2.0
-torch>=2.2.0; sys_platform != 'darwin'
-torchvision>=0.17.0; sys_platform != 'darwin'
 scikit-learn>=1.5.0
 scipy>=1.13.0
 pandas>=2.2.2
