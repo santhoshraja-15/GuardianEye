@@ -6,8 +6,11 @@ from backend.app.api.v1 import (
     alerts,
     auth,
     behaviours,
+    evidence,
     health,
+    incidents,
     interactions,
+    replay,
     risks,
     storage,
     tracks,
@@ -37,4 +40,13 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(
     alerts.router, prefix="/alerts", tags=["Alerts"]
+)
+api_v1_router.include_router(
+    incidents.router, prefix="/incidents", tags=["Incidents"]
+)
+api_v1_router.include_router(
+    evidence.router, prefix="/evidence", tags=["Evidence"]
+)
+api_v1_router.include_router(
+    replay.router, prefix="/replay", tags=["Replay"]
 )
