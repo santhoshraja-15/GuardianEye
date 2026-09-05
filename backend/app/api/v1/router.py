@@ -3,6 +3,7 @@ GuardianEye API v1 Master Router
 """
 from fastapi import APIRouter
 from backend.app.api.v1 import (
+    alerts,
     auth,
     behaviours,
     health,
@@ -33,4 +34,7 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(
     risks.router, prefix="/risks", tags=["Risks"]
+)
+api_v1_router.include_router(
+    alerts.router, prefix="/alerts", tags=["Alerts"]
 )
