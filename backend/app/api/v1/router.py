@@ -7,6 +7,7 @@ from backend.app.api.v1 import (
     behaviours,
     health,
     interactions,
+    risks,
     storage,
     tracks,
     users,
@@ -29,4 +30,7 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(
     behaviours.router, prefix="/behaviours", tags=["Behaviours"]
+)
+api_v1_router.include_router(
+    risks.router, prefix="/risks", tags=["Risks"]
 )
