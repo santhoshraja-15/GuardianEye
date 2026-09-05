@@ -5,9 +5,8 @@ from dataclasses import dataclass
 import math
 import os
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Optional
 import cv2
-import numpy as np
 
 
 @dataclass
