@@ -1,10 +1,20 @@
 """
 Spatial Geometry, Point-in-Polygon, and Zone Transition Engine
 """
+from __future__ import annotations
 import math
-from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Any, List, Optional, Tuple, Union
 from ai.tracking.tracker_schemas import TrackedObject
+
+
+@dataclass
+class Point:
+    x: float
+    y: float
+
+    def to_tuple(self) -> Tuple[float, float]:
+        return (self.x, self.y)
 
 
 @dataclass
@@ -27,6 +37,52 @@ class SpatialOccupancy:
     is_inside: bool
     distance_to_boundary_px: float
     is_restricted_violation: bool
+
+
+@dataclass
+class PolygonZone:
+    name: str = ""
+    polygon: List[Tuple[float, float]] = field(default_factory=list)
+    zone_id: Optional[str] = None
+    zone_code: Optional[str] = None
+    zone_type: str = "GENERIC"
+    points: Optional[List[Point]] = None
+    risk_multiplier: float = 1.0
+    risk_weight: float = 1.0
+    is_restricted: bool = False
+
+    def __post_init__(self):
+        if not self.name and self.zone_code:
+            self.name = self.zone_code
+        elif not self.name and self.zone_id:
+            self.name = self.zone_id
+        if self.points and not self.polygon:
+            self.polygon = [p.to_tuple() for p in self.points]
+        elif self.polygon and not self.points:
+            self.points = [Point(x, y) for x, y in self.polygon]
+
+    def contains_point(self, point: Point | Tuple[float, float]) -> bool:
+        pt = point.to_tuple() if isinstance(point, Point) else point
+        return SpatialGeometryEngine.point_in_polygon(pt, self.polygon)
+
+
+class ZoneEvaluator:
+    """Evaluates spatial inclusion of points/tracks across polygon zones"""
+
+    def __init__(self, zones: Optional[List[PolygonZone]] = None):
+        self.zones = zones or []
+
+    @staticmethod
+    def is_point_inside(point: Point | Tuple[float, float], zone: PolygonZone | ZoneDefinition) -> bool:
+        if isinstance(zone, PolygonZone):
+            return zone.contains_point(point)
+        pt = point.to_tuple() if isinstance(point, Point) else point
+        return SpatialGeometryEngine.point_in_polygon(pt, zone.polygon)
+
+    def evaluate(self, track: TrackedObject) -> List[PolygonZone]:
+        centroid = getattr(track, "current_centroid", None) or getattr(track, "centroid_xy", (0.0, 0.0))
+        pt = Point(centroid[0], centroid[1])
+        return [zone for zone in self.zones if zone.contains_point(pt)]
 
 
 class SpatialGeometryEngine:

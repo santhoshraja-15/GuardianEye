@@ -1,10 +1,13 @@
 """
 Multi-Object Tracking and Trajectory Point ORM Entities
 """
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy import Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.database.session import Base
+
+if TYPE_CHECKING:
+    from backend.app.models.video import Video
 
 
 class Track(Base):

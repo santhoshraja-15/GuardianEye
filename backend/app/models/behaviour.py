@@ -1,10 +1,15 @@
 """
 Interaction and Behaviour Event ORM Entities
 """
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy import Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.database.session import Base
+
+if TYPE_CHECKING:
+    from backend.app.models.video import Video
+    from backend.app.models.risk import RiskAssessment, DamagePrediction
+    from backend.app.models.incident import Incident
 
 
 class Interaction(Base):

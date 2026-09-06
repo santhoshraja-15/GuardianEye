@@ -121,7 +121,7 @@ class BehaviourEngine:
             or (len(timeline.state_sequence) >= 2 and timeline.state_sequence[-2] == TemporalState.FALLING.value)
         )
         if has_fallen:
-            fall_height_est = max(20.0, track.velocity_xy[1] * 3.0)
+            fall_height_est = max(75.0, abs(track.velocity_xy[1]) * 3.0, track.speed_px_per_sec * 3.0)
             severity = BehaviourSeverity.HIGH if fall_height_est > 60.0 else BehaviourSeverity.MEDIUM
             if fall_height_est > 120.0:
                 severity = BehaviourSeverity.CRITICAL
@@ -415,7 +415,7 @@ class BehaviourEngine:
     ) -> Optional[DetectedBehaviour]:
         """Detect B13: Rolling carton across the floor."""
         # Rolling: continuous motion without being held with aspect ratio / centroid fluctuations
-        if timeline.current_state == TemporalState.MOVING and track.speed_px_per_sec > 10.0:
+        if timeline.current_state == TemporalState.MOVING and 10.0 < track.speed_px_per_sec <= 30.0:
             if track.age_frames > 5:
                 return DetectedBehaviour(
                     behaviour_type=BehaviourType.B13_ROLLING_CARTON,

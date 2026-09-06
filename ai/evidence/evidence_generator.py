@@ -2,6 +2,7 @@
 Evidence Package Generator
 Constructs tamper-proof SHA-256 verified visual snapshots, bounding box overlays, and clip extraction manifests.
 """
+from dataclasses import asdict
 import hashlib
 import json
 import os
@@ -72,7 +73,7 @@ class EvidenceGenerator:
                 "incident_id": incident_id,
                 "video_id": video_id,
                 "behaviour": behaviour.behaviour_type.value,
-                "keyframes": [k.__dict__ for k in keyframes],
+                "keyframes": [asdict(k) for k in keyframes],
             },
             sort_keys=True,
         ).encode("utf-8")

@@ -2,10 +2,14 @@
 Alert and Incident Management ORM Entities
 """
 from datetime import datetime
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.database.session import Base
+
+if TYPE_CHECKING:
+    from backend.app.models.behaviour import BehaviourEvent
+    from backend.app.models.evidence import EvidencePackage, RootCause, Recommendation
 
 
 class Alert(Base):

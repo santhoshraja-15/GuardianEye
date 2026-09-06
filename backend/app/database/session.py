@@ -33,6 +33,24 @@ class Base(DeclarativeBase):
         nullable=False,
     )
 
+    def __init__(self, **kwargs):
+        if "id" not in kwargs:
+            kwargs["id"] = str(uuid.uuid4())
+        if "created_at" not in kwargs:
+            kwargs["created_at"] = datetime.now(timezone.utc)
+        if "updated_at" not in kwargs:
+            kwargs["updated_at"] = datetime.now(timezone.utc)
+        if hasattr(self, "__table__"):
+            for col in self.__table__.columns:
+                if col.name not in kwargs and col.default is not None:
+                    if callable(col.default.arg):
+                        kwargs[col.name] = col.default.arg(None)
+                    else:
+                        kwargs[col.name] = col.default.arg
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
 
 # Synchronous engine for Alembic and worker routines
 sync_database_url = settings.DATABASE_URL

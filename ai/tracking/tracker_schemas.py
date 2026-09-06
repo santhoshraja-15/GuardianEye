@@ -9,6 +9,7 @@ from typing import List, Optional, Tuple
 class TrackState(str, Enum):
     NEW = "NEW"
     TRACKED = "TRACKED"
+    CONFIRMED = "CONFIRMED"
     LOST = "LOST"
     REMOVED = "REMOVED"
 
@@ -32,8 +33,13 @@ class TrackedObject:
     class_name: str
     state: TrackState
     confidence: float
-    current_bbox: List[float]
-    current_centroid: Tuple[float, float]
+    current_bbox: List[float] = field(default_factory=list)
+    current_centroid: Tuple[float, float] = (0.0, 0.0)
+    bbox_xyxy: Optional[List[float]] = None
+    centroid_xy: Optional[Tuple[float, float]] = None
+    width_px: float = 0.0
+    height_px: float = 0.0
+    area_px: float = 0.0
     velocity_xy: Tuple[float, float] = (0.0, 0.0)
     speed_px_per_sec: float = 0.0
     direction_degrees: float = 0.0
@@ -46,11 +52,31 @@ class TrackedObject:
     time_since_update: int = 0
     trajectory: List[TrackPointData] = field(default_factory=list)
 
+    def __post_init__(self):
+        if self.bbox_xyxy is not None and not self.current_bbox:
+            self.current_bbox = self.bbox_xyxy
+        elif self.current_bbox and self.bbox_xyxy is None:
+            self.bbox_xyxy = self.current_bbox
+
+        if self.centroid_xy is not None and self.current_centroid == (0.0, 0.0):
+            self.current_centroid = self.centroid_xy
+        elif self.current_centroid != (0.0, 0.0) and self.centroid_xy is None:
+            self.centroid_xy = self.current_centroid
+
+        if self.width_px == 0.0 and self.current_bbox and len(self.current_bbox) == 4:
+            self.width_px = self.current_bbox[2] - self.current_bbox[0]
+        if self.height_px == 0.0 and self.current_bbox and len(self.current_bbox) == 4:
+            self.height_px = self.current_bbox[3] - self.current_bbox[1]
+        if self.area_px == 0.0:
+            self.area_px = self.width_px * self.height_px
+
 
 @dataclass
 class FrameTracks:
     frame_index: int
-    source_frame_number: int
-    timestamp_seconds: float
+    source_frame_number: int = 0
+    timestamp_seconds: float = 0.0
     active_tracks: List[TrackedObject] = field(default_factory=list)
     lost_tracks: List[TrackedObject] = field(default_factory=list)
+    removed_tracks: List[TrackedObject] = field(default_factory=list)
+

@@ -2,10 +2,13 @@
 Risk Assessment, Damage Prediction, and Predictive Risk ORM Entities
 """
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.database.session import Base
+
+if TYPE_CHECKING:
+    from backend.app.models.behaviour import BehaviourEvent
 
 
 class RiskAssessment(Base):

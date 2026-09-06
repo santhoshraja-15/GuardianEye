@@ -26,7 +26,14 @@ class InteractionDetector:
     CONTACT_DISTANCE_THRESH_PX = 40.0
     PROXIMITY_DISTANCE_THRESH_PX = 150.0
 
-    def __init__(self):
+    def __init__(
+        self,
+        distance_threshold_px: Optional[float] = None,
+        contact_threshold_px: Optional[float] = None,
+        proximity_threshold_px: Optional[float] = None,
+    ):
+        self.contact_threshold_px = contact_threshold_px or distance_threshold_px or self.CONTACT_DISTANCE_THRESH_PX
+        self.proximity_threshold_px = proximity_threshold_px or self.PROXIMITY_DISTANCE_THRESH_PX
         # Active interactions cache: (src_id, tgt_id) -> SpatialInteraction
         self.active_interactions: Dict[Tuple[int, int], SpatialInteraction] = {}
 
