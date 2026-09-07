@@ -45,7 +45,17 @@ describe('realtime websocket contract', () => {
     expect(url).toContain('/api/v1/ws/events');
   });
 
-  it('connects when authenticated and sets the live state on connection_ok', () => {
+  it('1. initial connection: opens a websocket once authenticated with a warehouse selected', () => {
+    const manager = new RealtimeSocketManager(new QueryClient(), () => 'token-123', () => 'warehouse-01', vi.fn());
+
+    manager.connect();
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+    expect(MockWebSocket.instances[0].url).toContain('token=token-123');
+    expect(MockWebSocket.instances[0].url).toContain('warehouse_id=warehouse-01');
+  });
+
+  it('2. connection_ok: sets connection state to LIVE when the socket opens', () => {
     const states: string[] = [];
     const manager = new RealtimeSocketManager(
       new QueryClient(),
@@ -55,18 +65,13 @@ describe('realtime websocket contract', () => {
     );
 
     manager.connect();
-
-    expect(MockWebSocket.instances).toHaveLength(1);
-    expect(MockWebSocket.instances[0].url).toContain('token=token-123');
-    expect(MockWebSocket.instances[0].url).toContain('warehouse_id=warehouse-01');
-
     MockWebSocket.instances[0].readyState = 1;
-    MockWebSocket.instances[0].onopen?.();
+    MockWebSocket.instances[0].onopen?.(new Event('open'));
 
     expect(states).toContain('LIVE');
   });
 
-  it('tracks connection_error as degraded', () => {
+  it('3. connection_error: sets connection state to DEGRADED', () => {
     const states: string[] = [];
     const manager = new RealtimeSocketManager(new QueryClient(), () => 'token-123', () => 'warehouse-01', (state) => states.push(state));
 
@@ -76,7 +81,7 @@ describe('realtime websocket contract', () => {
     expect(states).toContain('DEGRADED');
   });
 
-  it('invalidates only the supported alert and incident queries', () => {
+  it('4. ALERT_CREATED: invalidates the alerts query', () => {
     const queryClient = new QueryClient();
     const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
 
@@ -85,6 +90,13 @@ describe('realtime websocket contract', () => {
       warehouse_id: 'warehouse-01',
       data: { alert_id: 'alert-1' },
     }, queryClient, 'warehouse-01');
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['alerts'] });
+  });
+
+  it('5. ALERT_ACKNOWLEDGED: invalidates the alerts query', () => {
+    const queryClient = new QueryClient();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
 
     routeRealtimeEvent({
       event: 'ALERT_ACKNOWLEDGED',
@@ -92,11 +104,25 @@ describe('realtime websocket contract', () => {
       data: { alert_id: 'alert-1' },
     }, queryClient, 'warehouse-01');
 
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['alerts'] });
+  });
+
+  it('6. INCIDENT_CREATED: invalidates the incidents query', () => {
+    const queryClient = new QueryClient();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
     routeRealtimeEvent({
       event: 'INCIDENT_CREATED',
       warehouse_id: 'warehouse-01',
       data: { incident_id: 'incident-1' },
     }, queryClient, 'warehouse-01');
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['incidents'] });
+  });
+
+  it('7. INCIDENT_STATUS_CHANGED: invalidates the incidents query', () => {
+    const queryClient = new QueryClient();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
 
     routeRealtimeEvent({
       event: 'INCIDENT_STATUS_CHANGED',
@@ -104,33 +130,35 @@ describe('realtime websocket contract', () => {
       data: { incident_id: 'incident-1', from_status: 'DETECTED', to_status: 'ALERTED' },
     }, queryClient, 'warehouse-01');
 
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['alerts'] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['incidents'] });
   });
 
-  it('ignores unsupported and malformed payloads without crashing', () => {
+  it('8. unknown event: ignored without crashing or invalidating', () => {
     const queryClient = new QueryClient();
     const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
 
-    expect(() => routeRealtimeEvent({ event: 'UNKNOWN_EVENT', data: {} }, queryClient, 'warehouse-01')).not.toThrow();
+    expect(() => routeRealtimeEvent({
+      event: 'UNKNOWN_EVENT',
+      warehouse_id: 'warehouse-01',
+      data: {},
+    }, queryClient, 'warehouse-01')).not.toThrow();
     expect(() => routeRealtimeEvent({} as never, queryClient, 'warehouse-01')).not.toThrow();
-    expect(() => routeRealtimeEvent({ event: 'ALERT_CREATED', warehouse_id: 'warehouse-02', data: {} }, queryClient, 'warehouse-01')).not.toThrow();
-    expect(() => routeRealtimeEvent({ event: 'ALERT_CREATED', warehouse_id: null, data: {} }, queryClient, 'warehouse-01')).not.toThrow();
-
-    const manager = new RealtimeSocketManager(
-      queryClient,
-      () => 'token-123',
-      () => 'warehouse-01',
-      () => undefined,
-    );
-
-    manager.connect();
-    MockWebSocket.instances[0].onmessage?.({ data: '{bad json' } as MessageEvent);
 
     expect(invalidate).not.toHaveBeenCalled();
   });
 
-  it('ignores warehouse mismatch events and preserves current warehouse state', () => {
+  it('9. malformed JSON: ignored without crashing the socket handler', () => {
+    const queryClient = new QueryClient();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+    const manager = new RealtimeSocketManager(queryClient, () => 'token-123', () => 'warehouse-01', () => undefined);
+
+    manager.connect();
+
+    expect(() => MockWebSocket.instances[0].onmessage?.({ data: '{bad json' } as MessageEvent)).not.toThrow();
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+
+  it('10. warehouse mismatch: events for a different warehouse are ignored', () => {
     const queryClient = new QueryClient();
     const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
 
@@ -149,15 +177,20 @@ describe('realtime websocket contract', () => {
     expect(invalidate).not.toHaveBeenCalled();
   });
 
-  it('creates no socket when unauthenticated', () => {
-    const manager = new RealtimeSocketManager(new QueryClient(), () => null, () => 'warehouse-01', vi.fn());
+  it('10b. warehouse mismatch: no selected warehouse means no state mutation', () => {
+    const queryClient = new QueryClient();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
 
-    manager.connect();
+    routeRealtimeEvent({
+      event: 'ALERT_CREATED',
+      warehouse_id: 'warehouse-01',
+      data: { alert_id: 'alert-1' },
+    }, queryClient, null);
 
-    expect(MockWebSocket.instances).toHaveLength(0);
+    expect(invalidate).not.toHaveBeenCalled();
   });
 
-  it('closes the previous socket when the warehouse changes and creates a new connection', () => {
+  it('11. warehouse switch: closes the previous socket', () => {
     let currentWarehouse = 'warehouse-01';
     const manager = new RealtimeSocketManager(
       new QueryClient(),
@@ -174,11 +207,26 @@ describe('realtime websocket contract', () => {
     manager.connect();
 
     expect(firstSocket.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('12. warehouse switch: opens a new connection scoped to the new warehouse', () => {
+    let currentWarehouse = 'warehouse-01';
+    const manager = new RealtimeSocketManager(
+      new QueryClient(),
+      () => 'token-123',
+      () => currentWarehouse,
+      vi.fn(),
+    );
+
+    manager.connect();
+    currentWarehouse = 'warehouse-02';
+    manager.connect();
+
     expect(MockWebSocket.instances).toHaveLength(2);
     expect(MockWebSocket.instances[1].url).toContain('warehouse_id=warehouse-02');
   });
 
-  it('logout closes the socket and prevents reconnects', () => {
+  it('13. logout: closes the socket', () => {
     const manager = new RealtimeSocketManager(
       new QueryClient(),
       () => 'token-123',
@@ -190,20 +238,24 @@ describe('realtime websocket contract', () => {
     expect(MockWebSocket.instances).toHaveLength(1);
 
     manager.disconnect();
-    expect(MockWebSocket.instances[0].close).toHaveBeenCalledTimes(1);
 
-    MockWebSocket.instances[0].onclose?.(new CloseEvent('close'));
-    expect(MockWebSocket.instances).toHaveLength(1);
+    expect(MockWebSocket.instances[0].close).toHaveBeenCalledTimes(1);
   });
 
-  it('unexpected close triggers a bounded reconnect using current token and warehouse', () => {
-    let currentToken = 'token-123';
-    let currentWarehouse = 'warehouse-01';
+  it('14. unauthenticated: no socket is created', () => {
+    const manager = new RealtimeSocketManager(new QueryClient(), () => null, () => 'warehouse-01', vi.fn());
+
+    manager.connect();
+
+    expect(MockWebSocket.instances).toHaveLength(0);
+  });
+
+  it('15. unexpected close: triggers an automatic reconnect', () => {
     const states: string[] = [];
     const manager = new RealtimeSocketManager(
       new QueryClient(),
-      () => currentToken,
-      () => currentWarehouse,
+      () => 'token-123',
+      () => 'warehouse-01',
       (state) => states.push(state),
     );
 
@@ -215,34 +267,109 @@ describe('realtime websocket contract', () => {
 
     vi.advanceTimersByTime(1000);
     expect(MockWebSocket.instances).toHaveLength(2);
-    expect(MockWebSocket.instances[1].url).toContain('token=token-123');
-    expect(MockWebSocket.instances[1].url).toContain('warehouse_id=warehouse-01');
-
-    MockWebSocket.instances[1].readyState = 1;
-    MockWebSocket.instances[1].onopen?.(new Event('open'));
-
-    currentToken = 'token-456';
-    currentWarehouse = 'warehouse-02';
-    MockWebSocket.instances[1].onclose?.(new CloseEvent('close'));
-    vi.advanceTimersByTime(1000);
-
-    expect(MockWebSocket.instances).toHaveLength(3);
-    expect(MockWebSocket.instances[2].url).toContain('token=token-456');
-    expect(MockWebSocket.instances[2].url).toContain('warehouse_id=warehouse-02');
   });
 
-  it('does not create duplicate sockets during reconnect and cleans up timers', () => {
+  it('16. reconnect: does not create duplicate sockets', () => {
     const manager = new RealtimeSocketManager(new QueryClient(), () => 'token-123', () => 'warehouse-01', vi.fn());
 
     manager.connect();
     MockWebSocket.instances[0].onclose?.(new CloseEvent('close'));
 
+    // Advance in two partial steps across the single scheduled delay - only one
+    // reconnect attempt should fire, never more than one socket for one close.
     vi.advanceTimersByTime(500);
     vi.advanceTimersByTime(500);
+
     expect(MockWebSocket.instances).toHaveLength(2);
+  });
+
+  it('17. reconnect: uses the current token', () => {
+    let currentToken = 'token-123';
+    const manager = new RealtimeSocketManager(
+      new QueryClient(),
+      () => currentToken,
+      () => 'warehouse-01',
+      vi.fn(),
+    );
+
+    manager.connect();
+    currentToken = 'token-456';
+    MockWebSocket.instances[0].onclose?.(new CloseEvent('close'));
+    vi.advanceTimersByTime(1000);
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+    expect(MockWebSocket.instances[1].url).toContain('token=token-456');
+  });
+
+  it('18. reconnect: uses the current warehouse', () => {
+    let currentWarehouse = 'warehouse-01';
+    const manager = new RealtimeSocketManager(
+      new QueryClient(),
+      () => 'token-123',
+      () => currentWarehouse,
+      vi.fn(),
+    );
+
+    manager.connect();
+    currentWarehouse = 'warehouse-02';
+    MockWebSocket.instances[0].onclose?.(new CloseEvent('close'));
+    vi.advanceTimersByTime(1000);
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+    expect(MockWebSocket.instances[1].url).toContain('warehouse_id=warehouse-02');
+  });
+
+  it('19. explicit disconnect: prevents further reconnect attempts', () => {
+    const manager = new RealtimeSocketManager(
+      new QueryClient(),
+      () => 'token-123',
+      () => 'warehouse-01',
+      vi.fn(),
+    );
+
+    manager.connect();
+    manager.disconnect();
+
+    // A close event arriving after an explicit disconnect must not schedule a reconnect.
+    MockWebSocket.instances[0].onclose?.(new CloseEvent('close'));
+    vi.advanceTimersByTime(30_000);
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it('20. explicit disconnect: clears the pending reconnect timer', () => {
+    const manager = new RealtimeSocketManager(new QueryClient(), () => 'token-123', () => 'warehouse-01', vi.fn());
+
+    manager.connect();
+    MockWebSocket.instances[0].onclose?.(new CloseEvent('close'));
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
 
     manager.disconnect();
-    vi.advanceTimersByTime(10_000);
-    expect(MockWebSocket.instances).toHaveLength(2);
+    expect(vi.getTimerCount()).toBe(0);
+
+    vi.advanceTimersByTime(30_000);
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it('reconnect backoff is exponential and bounded by the configured maximum delay', () => {
+    const manager = new RealtimeSocketManager(new QueryClient(), () => 'token-123', () => 'warehouse-01', vi.fn());
+    manager.connect();
+
+    // Each successive unexpected close (without an intervening successful open,
+    // so reconnectAttempt never resets) should wait roughly double the previous
+    // delay, up to the configured cap - never firing early and never retrying
+    // on every tick (which would be a reconnect storm).
+    const expectedDelaysMs = [1000, 2000, 4000, 8000, 15000, 15000];
+
+    for (const delay of expectedDelaysMs) {
+      const beforeCount = MockWebSocket.instances.length;
+      MockWebSocket.instances[beforeCount - 1].onclose?.(new CloseEvent('close'));
+
+      vi.advanceTimersByTime(delay - 1);
+      expect(MockWebSocket.instances).toHaveLength(beforeCount);
+
+      vi.advanceTimersByTime(1);
+      expect(MockWebSocket.instances).toHaveLength(beforeCount + 1);
+    }
   });
 });
