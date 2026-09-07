@@ -4,15 +4,15 @@ Behaviour Event Service for Database Persistence and Querying
 import json
 from typing import List, Optional
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from ai.behaviour.behaviour_schemas import DetectedBehaviour
 from backend.app.models.behaviour import BehaviourEvent
 
 
 class BehaviourService:
     @staticmethod
-    async def create_behaviour_event(
-        db: AsyncSession,
+    def create_behaviour_event(
+        db: Session,
         video_id: str,
         behaviour: DetectedBehaviour,
         zone_id: Optional[str] = None,
@@ -34,13 +34,13 @@ class BehaviourService:
             status="DETECTED",
         )
         db.add(event)
-        await db.commit()
-        await db.refresh(event)
+        db.commit()
+        db.refresh(event)
         return event
 
     @staticmethod
-    async def get_behaviour_events_by_video(
-        db: AsyncSession,
+    def get_behaviour_events_by_video(
+        db: Session,
         video_id: str,
         limit: int = 100,
         offset: int = 0,
@@ -52,7 +52,7 @@ class BehaviourService:
             .offset(offset)
             .limit(limit)
         )
-        result = await db.execute(query)
+        result = db.execute(query)
         return list(result.scalars().all())
 
 

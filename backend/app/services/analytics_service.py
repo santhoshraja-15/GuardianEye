@@ -3,7 +3,7 @@ Analytics and Operational Health Aggregation Service
 """
 from typing import Dict, List, Optional
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from backend.app.models.behaviour import BehaviourEvent
 from backend.app.models.incident import Alert, Incident
 from backend.app.models.risk import RiskAssessment
@@ -17,25 +17,25 @@ from backend.app.schemas.analytics import (
 
 class AnalyticsService:
     @staticmethod
-    async def get_dashboard_summary(
-        db: AsyncSession,
+    def get_dashboard_summary(
+        db: Session,
         warehouse_id: Optional[str] = None,
     ) -> DashboardSummaryResponse:
         # 1. Total videos
-        video_count_res = await db.execute(select(func.count(Video.id)))
+        video_count_res = db.execute(select(func.count(Video.id)))
         total_videos = video_count_res.scalar() or 0
 
         # 2. Total incidents & critical
-        inc_count_res = await db.execute(select(func.count(Incident.id)))
+        inc_count_res = db.execute(select(func.count(Incident.id)))
         total_incidents = inc_count_res.scalar() or 0
 
-        crit_count_res = await db.execute(
+        crit_count_res = db.execute(
             select(func.count(Incident.id)).where(Incident.severity == "CRITICAL")
         )
         critical_incidents = crit_count_res.scalar() or 0
 
         # 3. Open alerts
-        alert_count_res = await db.execute(
+        alert_count_res = db.execute(
             select(func.count(Alert.id)).where(Alert.status == "OPEN")
         )
         open_alerts = alert_count_res.scalar() or 0
@@ -49,7 +49,7 @@ class AnalyticsService:
             .group_by(BehaviourEvent.behaviour_code)
             .order_by(func.count(BehaviourEvent.id).desc())
         )
-        dist_res = await db.execute(behaviour_dist_query)
+        dist_res = db.execute(behaviour_dist_query)
         rows = dist_res.all()
         total_events = sum(r.cnt for r in rows) if rows else 1
 

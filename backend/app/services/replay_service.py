@@ -4,8 +4,7 @@ Incident Replay Service for Timeline Reconstruction
 import json
 from typing import Optional
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import Session, selectinload
 from backend.app.models.evidence import EvidencePackage
 from backend.app.models.incident import Incident
 from backend.app.schemas.replay import IncidentReplayResponse, ReplayKeyframe, ReplayKeyframeBox
@@ -13,8 +12,8 @@ from backend.app.schemas.replay import IncidentReplayResponse, ReplayKeyframe, R
 
 class ReplayService:
     @staticmethod
-    async def get_incident_replay(
-        db: AsyncSession,
+    def get_incident_replay(
+        db: Session,
         incident_id: str,
     ) -> Optional[IncidentReplayResponse]:
         query = (
@@ -22,7 +21,7 @@ class ReplayService:
             .where(Incident.id == incident_id)
             .options(selectinload(Incident.evidence_package), selectinload(Incident.behaviour_event))
         )
-        result = await db.execute(query)
+        result = db.execute(query)
         incident = result.scalar_one_or_none()
         if not incident or not incident.evidence_package:
             return None

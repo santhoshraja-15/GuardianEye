@@ -4,7 +4,7 @@ Synthesizes factual, zero-hallucination answers backed strictly by verified data
 """
 from typing import List, Optional
 from sqlalchemy import desc, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from backend.app.models.behaviour import BehaviourEvent
 from backend.app.models.incident import Incident
 from backend.app.models.risk import RiskAssessment
@@ -17,9 +17,9 @@ from backend.app.schemas.assistant import (
 
 class AssistantService:
     @classmethod
-    async def process_query(
+    def process_query(
         cls,
-        db: AsyncSession,
+        db: Session,
         req: AssistantQueryRequest,
     ) -> AssistantQueryResponse:
         q_lower = req.query.lower()
@@ -32,7 +32,7 @@ class AssistantService:
                 .order_by(desc(Incident.created_at))
                 .limit(req.max_citations)
             )
-            result = await db.execute(incidents_query)
+            result = db.execute(incidents_query)
             incidents = list(result.scalars().all())
 
             for inc in incidents:

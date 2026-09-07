@@ -3,13 +3,13 @@ API Router for Behaviour Events
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from backend.app.api.deps import get_current_user, get_db
 from backend.app.models.user import User
 from backend.app.schemas.behaviour import BehaviourEventResponse
 from backend.app.services.behaviour_service import behaviour_service
 
-router = APIRouter(prefix="/behaviours", tags=["Behaviours"])
+router = APIRouter(tags=["Behaviours"])
 
 
 @router.get("/video/{video_id}", response_model=List[BehaviourEventResponse])
@@ -17,11 +17,11 @@ async def get_behaviours_for_video(
     video_id: str,
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Retrieve all detected behaviour events for a video."""
-    events = await behaviour_service.get_behaviour_events_by_video(
+    events = behaviour_service.get_behaviour_events_by_video(
         db, video_id=video_id, limit=limit, offset=offset
     )
     return [

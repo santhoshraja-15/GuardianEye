@@ -45,6 +45,18 @@ describe('realtime websocket contract', () => {
     expect(url).toContain('/api/v1/ws/events');
   });
 
+  it('preserves a non-default port from the page origin (regression: hostname alone drops it)', () => {
+    vi.stubGlobal('location', {
+      ...window.location,
+      hostname: 'localhost',
+      host: 'localhost:3000',
+      protocol: 'http:',
+    });
+
+    const url = buildRealtimeConnectionUrl('token-123', 'warehouse-01');
+    expect(url).toContain('ws://localhost:3000/api/v1/ws/events');
+  });
+
   it('1. initial connection: opens a websocket once authenticated with a warehouse selected', () => {
     const manager = new RealtimeSocketManager(new QueryClient(), () => 'token-123', () => 'warehouse-01', vi.fn());
 

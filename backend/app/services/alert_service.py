@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 from typing import Dict, List, Optional
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from ai.behaviour.behaviour_schemas import DetectedBehaviour
 from ai.risk.risk_schemas import RiskEvaluationResult, RiskLevel
 from backend.app.models.incident import Alert
@@ -29,9 +29,9 @@ class AlertService:
         self._recent_alerts[dedup_key] = current_time_sec
         return False
 
-    async def create_alert_if_actionable(
+    def create_alert_if_actionable(
         self,
-        db: AsyncSession,
+        db: Session,
         video_id: str,
         behaviour_event_id: str,
         behaviour: DetectedBehaviour,
@@ -56,30 +56,30 @@ class AlertService:
             deduplication_key=dedup_key,
         )
         db.add(alert)
-        await db.commit()
-        await db.refresh(alert)
+        db.commit()
+        db.refresh(alert)
         return alert
 
     @staticmethod
-    async def acknowledge_alert(
-        db: AsyncSession,
+    def acknowledge_alert(
+        db: Session,
         alert_id: str,
         user_id: str,
     ) -> Optional[Alert]:
         query = select(Alert).where(Alert.id == alert_id)
-        result = await db.execute(query)
+        result = db.execute(query)
         alert = result.scalar_one_or_none()
         if alert:
             alert.status = "ACKNOWLEDGED"
             alert.acknowledged_by = user_id
             alert.acknowledged_at = datetime.now(timezone.utc)
-            await db.commit()
-            await db.refresh(alert)
+            db.commit()
+            db.refresh(alert)
         return alert
 
     @staticmethod
-    async def get_active_alerts(
-        db: AsyncSession,
+    def get_active_alerts(
+        db: Session,
         limit: int = 50,
     ) -> List[Alert]:
         query = (
@@ -88,7 +88,7 @@ class AlertService:
             .order_by(Alert.created_at.desc())
             .limit(limit)
         )
-        result = await db.execute(query)
+        result = db.execute(query)
         return list(result.scalars().all())
 
 

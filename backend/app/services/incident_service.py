@@ -5,8 +5,7 @@ from datetime import datetime, timezone
 import uuid
 from typing import List, Optional
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import Session, selectinload
 from backend.app.models.incident import Incident, IncidentHistory
 from backend.app.schemas.incident import IncidentCreateRequest, IncidentStatusUpdateRequest
 
@@ -24,9 +23,9 @@ class IncidentService:
     }
 
     @classmethod
-    async def create_incident(
+    def create_incident(
         cls,
-        db: AsyncSession,
+        db: Session,
         req: IncidentCreateRequest,
     ) -> Incident:
         code = f"INC-{uuid.uuid4().hex[:8].upper()}"
@@ -42,7 +41,7 @@ class IncidentService:
             status="DETECTED",
         )
         db.add(incident)
-        await db.flush()
+        db.flush()
 
         initial_history = IncidentHistory(
             incident_id=incident.id,
@@ -51,19 +50,19 @@ class IncidentService:
             change_reason="System automated incident generation",
         )
         db.add(initial_history)
-        await db.commit()
-        await db.refresh(incident)
+        db.commit()
+        db.refresh(incident)
         return incident
 
     @classmethod
-    async def update_incident_status(
+    def update_incident_status(
         cls,
-        db: AsyncSession,
+        db: Session,
         req: IncidentStatusUpdateRequest,
         user_id: Optional[str] = None,
     ) -> Optional[Incident]:
         query = select(Incident).where(Incident.id == req.incident_id).options(selectinload(Incident.history))
-        result = await db.execute(query)
+        result = db.execute(query)
         incident = result.scalar_one_or_none()
         if not incident:
             return None
@@ -92,22 +91,22 @@ class IncidentService:
             change_reason=req.change_reason,
         )
         db.add(history_entry)
-        await db.commit()
-        await db.refresh(incident)
+        db.commit()
+        db.refresh(incident)
         return incident
 
     @staticmethod
-    async def get_incident_by_id(
-        db: AsyncSession,
+    def get_incident_by_id(
+        db: Session,
         incident_id: str,
     ) -> Optional[Incident]:
         query = select(Incident).where(Incident.id == incident_id).options(selectinload(Incident.history))
-        result = await db.execute(query)
+        result = db.execute(query)
         return result.scalar_one_or_none()
 
     @staticmethod
-    async def list_incidents(
-        db: AsyncSession,
+    def list_incidents(
+        db: Session,
         warehouse_id: Optional[str] = None,
         severity: Optional[str] = None,
         status: Optional[str] = None,
@@ -123,7 +122,7 @@ class IncidentService:
             query = query.where(Incident.status == status)
 
         query = query.offset(offset).limit(limit)
-        result = await db.execute(query)
+        result = db.execute(query)
         return list(result.scalars().all())
 
 

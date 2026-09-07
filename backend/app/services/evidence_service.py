@@ -4,15 +4,15 @@ Evidence Service for Packaging and Cryptographic Verification
 import json
 from typing import Optional
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from ai.evidence.evidence_schemas import EvidencePackageManifest
 from backend.app.models.evidence import EvidencePackage
 
 
 class EvidenceService:
     @staticmethod
-    async def create_evidence_package(
-        db: AsyncSession,
+    def create_evidence_package(
+        db: Session,
         incident_id: str,
         manifest: EvidencePackageManifest,
     ) -> EvidencePackage:
@@ -26,17 +26,17 @@ class EvidenceService:
             overlay_data=json.dumps([k.__dict__ for k in manifest.keyframes]),
         )
         db.add(pkg)
-        await db.commit()
-        await db.refresh(pkg)
+        db.commit()
+        db.refresh(pkg)
         return pkg
 
     @staticmethod
-    async def get_evidence_by_incident(
-        db: AsyncSession,
+    def get_evidence_by_incident(
+        db: Session,
         incident_id: str,
     ) -> Optional[EvidencePackage]:
         query = select(EvidencePackage).where(EvidencePackage.incident_id == incident_id)
-        result = await db.execute(query)
+        result = db.execute(query)
         return result.scalar_one_or_none()
 
 

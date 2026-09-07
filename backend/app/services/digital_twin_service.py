@@ -4,8 +4,7 @@ Digital Twin Service for Warehouse Topology and Spatial State
 import json
 from typing import Optional
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import Session, selectinload
 from backend.app.models.warehouse import Camera, Warehouse, Zone
 from backend.app.schemas.digital_twin import (
     CameraTopology,
@@ -16,15 +15,15 @@ from backend.app.schemas.digital_twin import (
 
 class DigitalTwinService:
     @staticmethod
-    async def get_warehouse_topology(
-        db: AsyncSession,
+    def get_warehouse_topology(
+        db: Session,
         warehouse_id: Optional[str] = None,
     ) -> DigitalTwinTopologyResponse:
         query = select(Warehouse).options(selectinload(Warehouse.zones), selectinload(Warehouse.cameras))
         if warehouse_id:
             query = query.where(Warehouse.id == warehouse_id)
 
-        result = await db.execute(query)
+        result = db.execute(query)
         wh = result.scalars().first()
 
         if not wh:

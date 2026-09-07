@@ -22,7 +22,12 @@ const INITIAL_RECONNECT_DELAY_MS = 1000;
 const MAX_RECONNECT_DELAY_MS = 15_000;
 
 export function buildRealtimeConnectionUrl(token: string, warehouseId: string | null): string {
-  const host = window.location.hostname;
+  // window.location.host includes the port (hostname alone does not) — the
+  // REST API client resolves its relative baseURL against the same origin
+  // (including port) the page was served from, so the WebSocket must match
+  // it exactly or it silently targets the wrong port (e.g. the protocol's
+  // default 80/443) whenever the app isn't served from one of those.
+  const host = window.location.host;
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const base = `${protocol}//${host}${appConfig.apiBaseUrl.replace('/api/v1', '')}`;
   const url = new URL(`${base}/api/v1/ws/events`);
