@@ -45,7 +45,15 @@ apiClient.interceptors.response.use(
     const payload = error.response?.data;
     const message = payload?.detail ?? payload?.message ?? error.message ?? 'Request failed';
 
-    if (status !== 401) {
+    // A 401 from the login/refresh endpoints themselves means "wrong
+    // credentials" / "invalid refresh token", not "an existing session went
+    // stale" — it must surface as a normal rejected request (so the login
+    // form can show the real message) rather than trigger the
+    // clear-session-and-redirect flow built for authenticated requests.
+    const requestUrl = error.config?.url ?? '';
+    const isAuthEndpoint = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/refresh');
+
+    if (status !== 401 || isAuthEndpoint) {
       return Promise.reject(new ApiError(message, status, error.code, payload));
     }
 

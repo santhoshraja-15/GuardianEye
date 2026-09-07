@@ -163,7 +163,12 @@ export const IncidentsPage: React.FC = () => {
 
       {selectedIncident && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-white/10 rounded-2xl w-full max-w-2xl p-6 space-y-5">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Manage case ${selectedIncident.incident_code}`}
+            className="bg-[#111827] border border-white/10 rounded-2xl w-full max-w-2xl p-6 space-y-5"
+          >
             <div className="flex items-start justify-between border-b border-white/10 pb-4">
               <div>
                 <div className="flex items-center gap-2">
@@ -221,8 +226,9 @@ export const IncidentsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs text-gray-400">Audit reason</label>
+                <label htmlFor="incident-audit-reason" className="text-xs text-gray-400">Audit reason</label>
                 <textarea
+                  id="incident-audit-reason"
                   value={transitionReason}
                   onChange={(e) => setTransitionReason(e.target.value)}
                   placeholder="Describe the update reason for the incident record..."

@@ -3,6 +3,7 @@ import {
   Bell,
   CheckCircle,
   Command,
+  Menu,
   Search,
   Sparkles,
   Terminal,
@@ -19,6 +20,7 @@ interface HeaderProps {
   currentPage: string;
   connectionState?: 'LIVE' | 'DEGRADED' | 'RECONNECTING' | 'OFFLINE';
   onOpenCommandPalette: () => void;
+  onOpenMobileNav: () => void;
   sidebarCollapsed: boolean;
 }
 
@@ -31,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentPage,
   connectionState = 'LIVE',
   onOpenCommandPalette,
+  onOpenMobileNav,
   sidebarCollapsed,
 }) => {
   const [timeStr, setTimeStr] = useState<string>('');
@@ -61,10 +64,19 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header
-      className="h-16 bg-[#0B0F17]/90 backdrop-blur-md border-b border-white/10 px-4 md:px-8 flex items-center justify-between fixed top-0 right-0 z-20 transition-all duration-200"
-      style={{ left: sidebarCollapsed ? '5rem' : '16rem' }}
+      className={`h-16 bg-[#0B0F17]/90 backdrop-blur-md border-b border-white/10 px-4 md:px-8 flex items-center justify-between fixed top-0 right-0 left-0 z-20 transition-all duration-200 ${
+        sidebarCollapsed ? 'md:left-20' : 'md:left-64'
+      }`}
     >
       <div className="flex items-center gap-4 min-w-0">
+        <button
+          type="button"
+          aria-label="Open navigation"
+          onClick={onOpenMobileNav}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:border-white/20 transition-all md:hidden"
+        >
+          <Menu className="w-4 h-4" />
+        </button>
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-[0.18em] text-gray-500">Workspace</div>
           <div className="text-sm font-medium text-white truncate">{currentPage}</div>
@@ -86,17 +98,21 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </div>
 
-        <div className="font-mono text-xs text-gray-400 bg-black/40 border border-white/5 px-3 py-1.5 rounded-lg flex items-center gap-2">
+        <div className="hidden lg:flex font-mono text-xs text-gray-400 bg-black/40 border border-white/5 px-3 py-1.5 rounded-lg items-center gap-2">
           <Terminal className="w-3.5 h-3.5 text-blue-400" />
           <span>{timeStr}</span>
         </div>
 
-        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono ${liveStatusColors[connectionState]}`}>
+        <div
+          role="status"
+          aria-label={`Connection status: ${connectionState}`}
+          className={`flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg border text-xs font-mono ${liveStatusColors[connectionState]}`}
+        >
           <Wifi className="w-3.5 h-3.5" />
-          <span>{connectionState}</span>
+          <span className="hidden sm:inline">{connectionState}</span>
         </div>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
           <CheckCircle className="w-3.5 h-3.5" />
           <span>ZERO DRIFT</span>
         </div>
@@ -109,6 +125,8 @@ export const Header: React.FC<HeaderProps> = ({
         ) : null}
 
         <button
+          type="button"
+          aria-label={openAlertsCount > 0 ? `Open alerts (${openAlertsCount} open)` : 'Open alerts'}
           onClick={onOpenAlertsModal}
           className="relative p-2 rounded-lg bg-[#111827] border border-white/10 text-gray-300 hover:text-white hover:border-white/20 transition-all"
         >
@@ -129,11 +147,13 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <button
+          type="button"
+          aria-label="Ask Copilot"
           onClick={onOpenCopilot}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-medium hover:bg-blue-600/30 transition-all"
+          className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-medium hover:bg-blue-600/30 transition-all"
         >
           <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-          <span>Ask Copilot</span>
+          <span className="hidden sm:inline">Ask Copilot</span>
         </button>
 
         <button

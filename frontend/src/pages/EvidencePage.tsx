@@ -215,6 +215,7 @@ export const EvidencePage: React.FC = () => {
                     <div className="mt-3 space-y-2">
                       <input
                         type="range"
+                        aria-label="Seek video timeline"
                         min={0}
                         max={maxTimelineSeconds}
                         step={0.1}

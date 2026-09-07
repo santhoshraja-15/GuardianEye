@@ -24,6 +24,8 @@ interface SidebarProps {
   collapsed: boolean;
   onToggleSidebar: () => void;
   selectedWarehouseId?: string | null;
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -33,6 +35,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   collapsed,
   onToggleSidebar,
   selectedWarehouseId,
+  mobileOpen,
+  onCloseMobile,
 }) => {
   const roleName = user?.role?.name ?? 'Operator';
   const canViewAdministration = roleName === 'Admin' || roleName === 'Supervisor';
@@ -52,9 +56,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-[#0B0F17] border-r border-white/10 flex flex-col h-screen fixed left-0 top-0 z-30 select-none transition-all duration-200`}>
+    <>
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/70 md:hidden"
+          aria-hidden="true"
+          onClick={onCloseMobile}
+        />
+      )}
+      <aside
+        className={`w-64 ${collapsed ? 'md:w-20' : 'md:w-64'} ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:translate-x-0 bg-[#0B0F17] border-r border-white/10 flex flex-col h-screen fixed left-0 top-0 z-40 select-none transition-all duration-200`}
+      >
       <div className="h-16 flex items-center justify-between px-3 border-b border-white/10 gap-3">
-        <div className={`flex items-center gap-3 ${collapsed ? 'justify-center w-full' : ''}`}>
+        <div className={`flex items-center gap-3 ${collapsed ? 'md:justify-center md:w-full' : ''}`}>
           <div className="w-9 h-9 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 glow-accent shrink-0">
             <Shield className="w-5 h-5" />
           </div>
@@ -71,9 +87,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <button
           type="button"
+          aria-label="Close navigation"
+          onClick={onCloseMobile}
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:border-white/20 transition-all md:hidden"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           onClick={onToggleSidebar}
-          className="hidden sm:flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:border-white/20 transition-all"
+          className="hidden md:flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:border-white/20 transition-all"
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -104,6 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={link.to}
               to={link.to}
               title={collapsed ? link.label : undefined}
+              onClick={onCloseMobile}
               className={({ isActive }) =>
                 `flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
                   collapsed ? 'justify-center' : ''
@@ -151,6 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span className="w-2 h-2 rounded-full bg-emerald-400 pulse-live" />
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };

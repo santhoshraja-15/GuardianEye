@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  /* Tailwind's default gray-500 (#6a7282) renders at 3.96:1 against this
+     app's dark surfaces (#0b0f17 / #111827), below the WCAG AA 4.5:1
+     minimum for body text — it's used throughout as the muted/secondary
+     text color (labels, metadata, timestamps). Nudge it just enough to
+     clear 4.5:1 on both surfaces while staying close to the original
+     muted-gray weight, instead of jumping all the way to gray-400.
+     Verified: ~5.4:1 on #0b0f17, ~5.0:1 on #111827. */
+  --color-gray-500: #808998;
+}
+
 @layer base {
   :root {
     --bg-primary: #0b0f17;
@@ -106,4 +117,18 @@
 
 .pulse-live {
   animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Respect the user's reduced-motion preference across every animation and
+   transition in the app (scanline, live pulses, drawer/palette transitions,
+   hover transforms, etc.) instead of gating each one individually. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

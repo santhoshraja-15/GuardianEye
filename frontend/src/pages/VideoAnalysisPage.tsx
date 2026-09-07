@@ -156,6 +156,7 @@ export const VideoAnalysisPage: React.FC = () => {
             <div className="p-4 bg-[#0B0F17] space-y-3">
               <input
                 type="range"
+                aria-label="Seek video frame"
                 min="0"
                 max={totalFrames}
                 value={currentFrame}

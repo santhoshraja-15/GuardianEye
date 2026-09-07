@@ -227,10 +227,11 @@ export const HumanReviewPage: React.FC = () => {
 
               {draft.verdict === 'CHANGE_BEHAVIOUR' && (
                 <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                  <label className="mb-2 block text-[10px] font-mono uppercase tracking-[0.18em] text-gray-400">
+                  <label htmlFor="corrected-behaviour" className="mb-2 block text-[10px] font-mono uppercase tracking-[0.18em] text-gray-400">
                     Corrected behaviour from backend taxonomy
                   </label>
                   <select
+                    id="corrected-behaviour"
                     value={draft.correctedBehaviour}
                     onChange={(event) =>
                       setDraft((existing) => ({
@@ -250,10 +251,11 @@ export const HumanReviewPage: React.FC = () => {
               )}
 
               <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
-                <label className="mb-2 block text-[10px] font-mono uppercase tracking-[0.18em] text-gray-400">
+                <label htmlFor="reviewer-notes" className="mb-2 block text-[10px] font-mono uppercase tracking-[0.18em] text-gray-400">
                   Reviewer notes
                 </label>
                 <textarea
+                  id="reviewer-notes"
                   value={draft.notes}
                   onChange={(event) => setDraft((existing) => ({ ...existing, notes: event.target.value }))}
                   rows={4}

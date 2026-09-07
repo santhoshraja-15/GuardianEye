@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { AuthStatusPage } from '../components/auth/AuthStatusPage';
 import { LoginPage } from '../components/auth/LoginPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { SessionExpiredPage } from '../components/auth/SessionExpiredPage';
@@ -53,6 +54,14 @@ export function AppRoutes() {
         <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
         <Route path="/dna" element={<ProtectedRoute><DNAExplorerPage /></ProtectedRoute>} />
         <Route path="/human-review" element={<ProtectedRoute><HumanReviewPage /></ProtectedRoute>} />
+        <Route
+          path="/session"
+          element={
+            <ProtectedRoute allowedRoles={['Admin', 'Supervisor']}>
+              <AuthStatusPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Suspense>
