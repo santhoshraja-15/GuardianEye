@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, BarChart3, CalendarRange, Filter, Flame, MapPinned, ShieldAlert, Target, TrendingUp } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LineChart, Line, CartesianGrid } from 'recharts';
-import { GuardianAPI } from '../services/api';
-import { DashboardSummary, IncidentItem } from '../types';
+import { useDashboardSummary } from '../hooks/useDashboardSummary';
+import { useIncidents } from '../hooks/useIncidents';
 
 const chartColors = ['#ef4444', '#f97316', '#f59e0b', '#3b82f6', '#8b5cf6'];
 
@@ -30,24 +30,17 @@ const filterOptions = {
 };
 
 export const AnalyticsPage: React.FC = () => {
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  // Shared cache — same summary/incident data Dashboard, Digital Twin, and
+  // AppLayout's alert badge all read, instead of independently re-fetching.
+  const { data: summary = null } = useDashboardSummary();
+  const { data: incidents = [] } = useIncidents();
   const [selectedHotspot, setSelectedHotspot] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([GuardianAPI.getDashboardSummary(), GuardianAPI.getIncidents()])
-      .then(([summaryData, incidentData]) => {
-        setSummary(summaryData);
-        setIncidents(incidentData);
-        if (summaryData.risk_heatmaps.length > 0) {
-          setSelectedHotspot(summaryData.risk_heatmaps[0].zone_code);
-        }
-      })
-      .catch(() => {
-        setSummary(null);
-        setIncidents([]);
-      });
-  }, []);
+    if (!selectedHotspot && summary && summary.risk_heatmaps.length > 0) {
+      setSelectedHotspot(summary.risk_heatmaps[0].zone_code);
+    }
+  }, [summary, selectedHotspot]);
 
   const behaviourChartData = useMemo(() => summary?.behaviour_distribution ?? [], [summary]);
 

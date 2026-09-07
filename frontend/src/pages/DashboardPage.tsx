@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Activity,
   AlertTriangle,
@@ -15,10 +16,12 @@ import {
   Workflow,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { acknowledgeAlert } from '../api/alerts';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { RiskBadge } from '../components/ui/risk-badge';
-import { GuardianAPI } from '../services/api';
-import { AlertItem, DashboardSummary, IncidentItem } from '../types';
+import { useAlerts } from '../hooks/useAlerts';
+import { useDashboardSummary } from '../hooks/useDashboardSummary';
+import { useIncidents } from '../hooks/useIncidents';
 
 const chartColors = ['#ef4444', '#f97316', '#f59e0b', '#3b82f6', '#8b5cf6'];
 
@@ -26,16 +29,14 @@ const formatMoney = (value: number | undefined) =>
   typeof value === 'number' ? `$${value.toLocaleString()}` : 'N/A';
 
 export const DashboardPage: React.FC = () => {
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  const queryClient = useQueryClient();
+  // Shared TanStack Query hooks — the same cache AppLayout's alert badge
+  // reads from, so this data is fetched once per staleness window instead
+  // of once per page, and stays in sync with realtime invalidations.
+  const { data: summary } = useDashboardSummary();
+  const { data: alerts = [] } = useAlerts();
+  const { data: incidents = [] } = useIncidents();
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
-
-  useEffect(() => {
-    GuardianAPI.getDashboardSummary().then(setSummary);
-    GuardianAPI.getAlerts().then(setAlerts);
-    GuardianAPI.getIncidents().then(setIncidents);
-  }, []);
 
   const behaviourChartData = useMemo(
     () => summary?.behaviour_distribution ?? [],
@@ -48,10 +49,8 @@ export const DashboardPage: React.FC = () => {
   const totalBehaviourEvents = behaviourChartData.reduce((sum, item) => sum + item.count, 0);
 
   const handleAck = async (id: string) => {
-    await GuardianAPI.acknowledgeAlert(id);
-    setAlerts((previous) =>
-      previous.map((alert) => (alert.id === id ? { ...alert, status: 'ACKNOWLEDGED' } : alert)),
-    );
+    await acknowledgeAlert(id);
+    await queryClient.invalidateQueries({ queryKey: ['alerts'] });
   };
 
   const riskRiskLabel = summary?.operational_health_status ?? 'UNKNOWN';

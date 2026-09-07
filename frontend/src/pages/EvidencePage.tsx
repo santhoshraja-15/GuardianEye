@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, Copy, Download, Hash, Lock, Play, Video } from 'lucide-react';
+import { useIncidents } from '../hooks/useIncidents';
 import { GuardianAPI } from '../services/api';
-import { EvidencePackageItem, IncidentItem, IncidentReplayItem } from '../types';
+import { EvidencePackageItem, IncidentReplayItem } from '../types';
 
 const playbackRates = [0.5, 1, 1.5, 2];
 
 export const EvidencePage: React.FC = () => {
-  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  // Shared cache — same incident list AppLayout/Dashboard/Incident Board use.
+  const { data: incidents = [] } = useIncidents();
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [evidence, setEvidence] = useState<EvidencePackageItem | null>(null);
   const [replay, setReplay] = useState<IncidentReplayItem | null>(null);
@@ -16,13 +18,10 @@ export const EvidencePage: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    GuardianAPI.getIncidents().then((items) => {
-      setIncidents(items);
-      if (items.length > 0) {
-        setSelectedIncidentId(items[0].id);
-      }
-    });
-  }, []);
+    if (!selectedIncidentId && incidents.length > 0) {
+      setSelectedIncidentId(incidents[0].id);
+    }
+  }, [incidents, selectedIncidentId]);
 
   useEffect(() => {
     if (!selectedIncidentId) {

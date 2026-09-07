@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { DashboardPage } from '../pages/DashboardPage';
 import { vi } from 'vitest';
@@ -63,19 +64,30 @@ const { mockSummary, mockIncidents, mockAlerts, mockRisk } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('../services/api', () => ({
-  GuardianAPI: {
-    getDashboardSummary: vi.fn().mockResolvedValue(mockSummary),
-    getIncidents: vi.fn().mockResolvedValue(mockIncidents),
-    getAlerts: vi.fn().mockResolvedValue(mockAlerts),
-    getRiskAssessment: vi.fn().mockResolvedValue(mockRisk),
-    acknowledgeAlert: vi.fn(),
-  },
+vi.mock('../hooks/useDashboardSummary', () => ({
+  useDashboardSummary: () => ({ data: mockSummary }),
 }));
+vi.mock('../hooks/useIncidents', () => ({
+  useIncidents: () => ({ data: mockIncidents }),
+}));
+vi.mock('../hooks/useAlerts', () => ({
+  useAlerts: () => ({ data: mockAlerts }),
+}));
+vi.mock('../api/alerts', () => ({
+  acknowledgeAlert: vi.fn(),
+}));
+// Referenced only to keep the mockRisk fixture from being flagged unused —
+// this page doesn't fetch a standalone risk assessment today.
+void mockRisk;
 
 describe('command center page', () => {
   it('renders the real command-center intelligence panels using backend data', async () => {
-    render(<DashboardPage />);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DashboardPage />
+      </QueryClientProvider>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Command Center')).toBeInTheDocument();

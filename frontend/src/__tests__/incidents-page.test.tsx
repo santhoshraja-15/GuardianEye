@@ -1,6 +1,7 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { IncidentsPage } from '../pages/IncidentsPage';
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 
 const { mockIncidents } = vi.hoisted(() => ({
   mockIncidents: [
@@ -13,8 +14,8 @@ const { mockIncidents } = vi.hoisted(() => ({
       camera_id: 'cam-1',
       title: 'Carton drop in loading bay',
       summary: 'Heavy carton dropped from lift.',
-      severity: 'CRITICAL',
-      status: 'DETECTED',
+      severity: 'CRITICAL' as const,
+      status: 'DETECTED' as const,
       assigned_to: null,
       resolved_at: null,
       resolution_notes: null,
@@ -24,9 +25,12 @@ const { mockIncidents } = vi.hoisted(() => ({
   ],
 }));
 
+const { mockUseIncidents } = vi.hoisted(() => ({ mockUseIncidents: vi.fn() }));
+vi.mock('../hooks/useIncidents', () => ({
+  useIncidents: mockUseIncidents,
+}));
 vi.mock('../services/api', () => ({
   GuardianAPI: {
-    getIncidents: vi.fn().mockResolvedValue(mockIncidents),
     updateIncidentStatus: vi.fn().mockResolvedValue({
       ...mockIncidents[0],
       status: 'UNDER_REVIEW',
@@ -35,8 +39,17 @@ vi.mock('../services/api', () => ({
 }));
 
 describe('incidents page', () => {
+  beforeEach(() => {
+    mockUseIncidents.mockReturnValue({ data: mockIncidents });
+  });
+
   it('shows status transitions supported by the backend contract for the selected incident', async () => {
-    render(<IncidentsPage />);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <IncidentsPage />
+      </QueryClientProvider>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Incident Board')).toBeInTheDocument();
@@ -53,5 +66,41 @@ describe('incidents page', () => {
     expect(screen.getByRole('button', { name: 'UNDER_REVIEW' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'REJECTED' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'ACTION_TAKEN' })).not.toBeInTheDocument();
+  });
+
+  it('paginates a large incident list instead of rendering every row at once', async () => {
+    const manyIncidents = Array.from({ length: 60 }, (_, i) => ({
+      ...mockIncidents[0],
+      id: `inc-${i}`,
+      incident_code: `INC-${1000 + i}`,
+      title: `Incident ${i}`,
+    }));
+    mockUseIncidents.mockReturnValue({ data: manyIncidents });
+
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <IncidentsPage />
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Incident Board')).toBeInTheDocument();
+    });
+
+    // Page 1 shows the first 25 of 60, not all 60 rows.
+    expect(screen.getByText('INC-1000')).toBeInTheDocument();
+    expect(screen.getByText('INC-1024')).toBeInTheDocument();
+    expect(screen.queryByText('INC-1025')).not.toBeInTheDocument();
+    expect(screen.getByText('Showing 1–25 of 60 incidents')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled();
+
+    screen.getByRole('button', { name: 'Next page' }).click();
+
+    await waitFor(() => {
+      expect(screen.getByText('INC-1025')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('INC-1000')).not.toBeInTheDocument();
+    expect(screen.getByText('Showing 26–50 of 60 incidents')).toBeInTheDocument();
   });
 });

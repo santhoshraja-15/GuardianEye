@@ -5,7 +5,7 @@
  * the contract is not present, the request should fail loudly so the UI can show
  * a proper error state rather than fabricating production data.
  */
-import axios from 'axios';
+import { apiClient } from '../api/client';
 import {
   AlertItem,
   AssistantQueryResponse,
@@ -19,11 +19,11 @@ import {
   VideoResponse,
 } from '../types';
 
-const apiClient = axios.create({
-  baseURL: '/api/v1',
-  timeout: 10000,
-});
-
+// This module previously created its own bare axios instance with no
+// Authorization header injection and no 401/refresh handling — every page
+// using GuardianAPI.* was sending unauthenticated requests to a real
+// backend. It now reuses the shared, correctly-configured apiClient from
+// api/client.ts (same auth interceptor the api/*.ts modules and hooks use).
 export const GuardianAPI = {
   async getDashboardSummary(): Promise<DashboardSummary> {
     const res = await apiClient.get<DashboardSummary>('/analytics/dashboard');

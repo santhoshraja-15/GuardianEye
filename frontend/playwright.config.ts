@@ -8,8 +8,9 @@ export default defineConfig({
   fullyParallel: true,
   // Keep this modest: every project shares one `vite preview` instance, and
   // too much concurrency against it just produces goto/click timeouts that
-  // look like app bugs but are actually server contention.
-  workers: 3,
+  // look like app bugs but are actually server contention. There are now 6
+  // projects (desktop/laptop/tablet/mobile breakpoints), so this stays low.
+  workers: 2,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 1,
   reporter: [['list']],
@@ -38,6 +39,16 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
       // Layout-only: functional specs restrict themselves to the Desktop
       // project internally, so only run the viewport-sensitive spec here.
+      testMatch: /responsive\.spec\.ts/,
+    },
+    {
+      name: 'Desktop Chrome (1280x800)',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
+      testMatch: /responsive\.spec\.ts/,
+    },
+    {
+      name: 'Desktop Chrome (1024x768)',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1024, height: 768 } },
       testMatch: /responsive\.spec\.ts/,
     },
     {

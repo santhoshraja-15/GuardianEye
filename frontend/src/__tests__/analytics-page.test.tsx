@@ -59,12 +59,11 @@ const { mockSummary, mockIncidents } = vi.hoisted(() => ({
   ],
 }));
 
-vi.mock('../services/api', () => ({
-  GuardianAPI: {
-    getDashboardSummary: vi.fn().mockResolvedValue(mockSummary),
-    getIncidents: vi.fn().mockResolvedValue(mockIncidents),
-    getAlerts: vi.fn().mockResolvedValue([]),
-  },
+vi.mock('../hooks/useDashboardSummary', () => ({
+  useDashboardSummary: () => ({ data: mockSummary }),
+}));
+vi.mock('../hooks/useIncidents', () => ({
+  useIncidents: () => ({ data: mockIncidents }),
 }));
 
 describe('analytics page', () => {

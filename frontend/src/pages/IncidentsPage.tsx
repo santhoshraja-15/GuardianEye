@@ -1,8 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { StatusBadge } from '../components/common/StatusBadge';
+import { useIncidents } from '../hooks/useIncidents';
 import { GuardianAPI } from '../services/api';
 import { IncidentItem } from '../types';
+
+const PAGE_SIZE = 25;
 
 const statusTransitionMap: Record<string, string[]> = {
   DETECTED: ['ALERTED', 'ACKNOWLEDGED', 'UNDER_REVIEW', 'REJECTED'],
@@ -16,16 +20,17 @@ const statusTransitionMap: Record<string, string[]> = {
 };
 
 export const IncidentsPage: React.FC = () => {
-  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  const queryClient = useQueryClient();
+  // Shared cache — the same data AppLayout, the Dashboard, Evidence Vault,
+  // etc. all read, instead of each page independently re-fetching the full
+  // incident list.
+  const { data: incidents = [] } = useIncidents();
   const [selectedIncident, setSelectedIncident] = useState<IncidentItem | null>(null);
   const [filterSeverity, setFilterSeverity] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [transitionStatus, setTransitionStatus] = useState<string>('');
   const [transitionReason, setTransitionReason] = useState('');
-
-  useEffect(() => {
-    GuardianAPI.getIncidents().then(setIncidents);
-  }, []);
+  const [page, setPage] = useState(1);
 
   const availableStatuses = useMemo(() => {
     if (!selectedIncident) return [];
@@ -51,6 +56,16 @@ export const IncidentsPage: React.FC = () => {
     return matchSev && matchSearch;
   });
 
+  // Reset to page 1 whenever the filtered set changes shape, so a search/
+  // severity change never strands the user on an out-of-range empty page.
+  useEffect(() => {
+    setPage(1);
+  }, [filterSeverity, searchQuery]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
   const handleUpdateStatus = async () => {
     if (!selectedIncident || !transitionReason.trim() || !transitionStatus) return;
 
@@ -61,7 +76,9 @@ export const IncidentsPage: React.FC = () => {
       resolution_notes: transitionReason,
     });
 
-    setIncidents((prev) => prev.map((incident) => (incident.id === selectedIncident.id ? { ...incident, ...updated } : incident)));
+    queryClient.setQueryData<IncidentItem[]>(['incidents'], (prev) =>
+      (prev ?? []).map((incident) => (incident.id === selectedIncident.id ? { ...incident, ...updated } : incident)),
+    );
     setSelectedIncident((prev) => (prev ? { ...prev, ...updated } : prev));
     setTransitionReason('');
   };
@@ -122,7 +139,7 @@ export const IncidentsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 font-mono">
-              {filtered.map((inc) => (
+              {paged.map((inc) => (
                 <tr key={inc.id} className="hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4 font-bold text-blue-400">{inc.incident_code}</td>
                   <td className="px-6 py-4">
@@ -159,6 +176,37 @@ export const IncidentsPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {filtered.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10 px-6 py-3 text-xs text-gray-400">
+            <span>
+              Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length} incidents
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Previous page"
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={safePage <= 1}
+                className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 font-mono text-[11px] text-gray-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" /> Prev
+              </button>
+              <span className="font-mono text-[11px] text-gray-500">
+                Page {safePage} of {pageCount}
+              </span>
+              <button
+                type="button"
+                aria-label="Next page"
+                onClick={() => setPage((prev) => Math.min(pageCount, prev + 1))}
+                disabled={safePage >= pageCount}
+                className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 font-mono text-[11px] text-gray-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {selectedIncident && (

@@ -10,7 +10,18 @@ test.beforeEach(async ({ page }, testInfo) => {
   await seedAuthenticatedSession(page);
 });
 
-const pagesToScan = ['/', '/incidents', '/evidence', '/human-review', '/analytics'];
+const pagesToScan = [
+  '/',
+  '/live',
+  '/analysis',
+  '/incidents',
+  '/evidence',
+  '/prevention',
+  '/digital-twin',
+  '/dna',
+  '/human-review',
+  '/analytics',
+];
 
 test.describe('accessibility (axe)', () => {
   for (const path of pagesToScan) {

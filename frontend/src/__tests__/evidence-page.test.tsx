@@ -52,9 +52,11 @@ const { mockIncidents, mockEvidence, mockReplay } = vi.hoisted(() => ({
   },
 }));
 
+vi.mock('../hooks/useIncidents', () => ({
+  useIncidents: () => ({ data: mockIncidents }),
+}));
 vi.mock('../services/api', () => ({
   GuardianAPI: {
-    getIncidents: vi.fn().mockResolvedValue(mockIncidents),
     getEvidenceForIncident: vi.fn().mockResolvedValue(mockEvidence),
     getIncidentReplay: vi.fn().mockResolvedValue(mockReplay),
   },

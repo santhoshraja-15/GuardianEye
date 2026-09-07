@@ -11,8 +11,10 @@ import {
   Zap,
 } from 'lucide-react';
 import { StatusBadge } from '../components/common/StatusBadge';
+import { useAlerts } from '../hooks/useAlerts';
+import { useIncidents } from '../hooks/useIncidents';
 import { GuardianAPI } from '../services/api';
-import { AlertItem, BehaviourEventResponse, IncidentItem, TrackResponse, VideoResponse } from '../types';
+import { BehaviourEventResponse, TrackResponse, VideoResponse } from '../types';
 
 const formatSeverity = (value?: string) => value?.toUpperCase() ?? 'UNKNOWN';
 
@@ -21,23 +23,16 @@ export const LiveStreamsPage: React.FC = () => {
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [tracks, setTracks] = useState<TrackResponse[]>([]);
   const [behaviourEvents, setBehaviourEvents] = useState<BehaviourEventResponse[]>([]);
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  // Shared cache — same alert/incident data AppLayout, Dashboard, etc. use.
+  const { data: alerts = [] } = useAlerts();
+  const { data: incidents = [] } = useIncidents();
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    void (async () => {
-      const [videoList, alertList, incidentList] = await Promise.all([
-        GuardianAPI.getVideos(),
-        GuardianAPI.getAlerts(),
-        GuardianAPI.getIncidents(),
-      ]);
-
+    GuardianAPI.getVideos().then((videoList) => {
       setVideos(videoList);
       setSelectedVideoId(videoList[0]?.id ?? null);
-      setAlerts(alertList);
-      setIncidents(incidentList);
-    })();
+    });
   }, []);
 
   useEffect(() => {

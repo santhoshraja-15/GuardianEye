@@ -130,9 +130,13 @@ vi.mock('../services/api', () => ({
     getVideos: vi.fn().mockResolvedValue(mockVideos),
     getVideoTracks: vi.fn().mockResolvedValue(mockTracks),
     getBehavioursForVideo: vi.fn().mockResolvedValue(mockBehaviours),
-    getAlerts: vi.fn().mockResolvedValue(mockAlerts),
-    getIncidents: vi.fn().mockResolvedValue(mockIncidents),
   },
+}));
+vi.mock('../hooks/useAlerts', () => ({
+  useAlerts: () => ({ data: mockAlerts }),
+}));
+vi.mock('../hooks/useIncidents', () => ({
+  useIncidents: () => ({ data: mockIncidents }),
 }));
 
 describe('live monitoring page', () => {

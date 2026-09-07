@@ -167,12 +167,16 @@ export const VideoAnalysisPage: React.FC = () => {
               <div className="flex items-center justify-between text-xs font-mono">
                 <div className="flex items-center gap-3">
                   <button
+                    type="button"
+                    aria-label={isPlaying ? 'Pause playback' : 'Play video'}
                     onClick={() => setIsPlaying(!isPlaying)}
                     className="p-2 rounded-lg bg-blue-600/30 text-blue-400 border border-blue-500/40 hover:bg-blue-600/50"
                   >
                     {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                   </button>
                   <button
+                    type="button"
+                    aria-label="Restart from beginning"
                     onClick={() => setCurrentFrame(0)}
                     className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-white"
                   >

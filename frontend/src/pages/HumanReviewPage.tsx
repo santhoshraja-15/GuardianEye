@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, CircleDashed, FileText, ShieldAlert, Sparkles, TriangleAlert } from 'lucide-react';
-import { GuardianAPI } from '../services/api';
-import { IncidentItem } from '../types';
+import { useIncidents } from '../hooks/useIncidents';
 
 const behaviourTaxonomy = [
   'B01_DROP',
@@ -37,7 +36,8 @@ interface ReviewDraft {
 }
 
 export const HumanReviewPage: React.FC = () => {
-  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  // Shared cache — same incident list AppLayout/Dashboard/Incident Board use.
+  const { data: incidents = [] } = useIncidents();
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ReviewDraft>({
     verdict: 'CORRECT',
@@ -47,18 +47,10 @@ export const HumanReviewPage: React.FC = () => {
   const [submitted, setSubmitted] = useState<string | null>(null);
 
   useEffect(() => {
-    GuardianAPI.getIncidents()
-      .then((items) => {
-        setIncidents(items);
-        if (items[0]) {
-          setSelectedIncidentId(items[0].id);
-        }
-      })
-      .catch(() => {
-        setIncidents([]);
-        setSelectedIncidentId(null);
-      });
-  }, []);
+    if (!selectedIncidentId && incidents.length > 0) {
+      setSelectedIncidentId(incidents[0].id);
+    }
+  }, [incidents, selectedIncidentId]);
 
   const selectedIncident = useMemo(
     () => incidents.find((incident) => incident.id === selectedIncidentId) ?? incidents[0] ?? null,

@@ -3,7 +3,18 @@ import { installApiMocks, installMediaMocks, installWebSocketMock, seedAuthentic
 
 // Runs on every configured project (Desktop / Laptop / Tablet / Mobile) —
 // this file is deliberately viewport-sensitive, unlike the other specs.
-const routesToCheck = ['/', '/live', '/incidents', '/evidence', '/analytics', '/human-review', '/digital-twin'];
+const routesToCheck = [
+  '/',
+  '/live',
+  '/analysis',
+  '/incidents',
+  '/evidence',
+  '/prevention',
+  '/digital-twin',
+  '/dna',
+  '/human-review',
+  '/analytics',
+];
 
 test.beforeEach(async ({ page }) => {
   await installApiMocks(page);

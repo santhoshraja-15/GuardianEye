@@ -43,13 +43,14 @@ const { mockTopology, mockSummary } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('../services/api', () => ({
-  GuardianAPI: {
-    getDigitalTwinTopology: vi.fn().mockResolvedValue(mockTopology),
-    getDashboardSummary: vi.fn().mockResolvedValue(mockSummary),
-    getIncidents: vi.fn().mockResolvedValue([]),
-    getAlerts: vi.fn().mockResolvedValue([]),
-  },
+vi.mock('../api/digital-twin', () => ({
+  getDigitalTwinTopology: vi.fn().mockResolvedValue(mockTopology),
+}));
+vi.mock('../hooks/useDashboardSummary', () => ({
+  useDashboardSummary: () => ({ data: mockSummary }),
+}));
+vi.mock('../hooks/useIncidents', () => ({
+  useIncidents: () => ({ data: [] }),
 }));
 
 describe('digital twin page', () => {

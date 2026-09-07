@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, Camera, Compass, Flame, MapPinned, ShieldAlert, Zap } from 'lucide-react';
-import { GuardianAPI } from '../services/api';
-import { DashboardSummary, DigitalTwinTopology, IncidentItem } from '../types';
+import { getDigitalTwinTopology } from '../api/digital-twin';
+import { useDashboardSummary } from '../hooks/useDashboardSummary';
+import { useIncidents } from '../hooks/useIncidents';
+import { DigitalTwinTopology } from '../types';
 
 const zoneColour = (riskMultiplier: number): string => {
   if (riskMultiplier >= 1.8) return 'rgba(239, 68, 68, 0.35)';
@@ -19,28 +21,21 @@ const riskTitle = (riskMultiplier: number): string => {
 
 export const DigitalTwinPage: React.FC = () => {
   const [topology, setTopology] = useState<DigitalTwinTopology | null>(null);
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  // Shared cache — same summary/incident data Dashboard and Analytics use.
+  const { data: summary = null } = useDashboardSummary();
+  const { data: incidents = [] } = useIncidents();
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      GuardianAPI.getDigitalTwinTopology(),
-      GuardianAPI.getDashboardSummary(),
-      GuardianAPI.getIncidents(),
-    ])
-      .then(([topologyData, summaryData, incidentData]) => {
+    getDigitalTwinTopology()
+      .then((topologyData) => {
         setTopology(topologyData);
-        setSummary(summaryData);
-        setIncidents(incidentData);
         if (topologyData.zones.length > 0) {
           setSelectedZone(topologyData.zones[0].zone_code);
         }
       })
       .catch(() => {
         setTopology(null);
-        setSummary(null);
-        setIncidents([]);
       });
   }, []);
 
