@@ -16,7 +16,6 @@ interface HeaderProps {
   onOpenCopilot: () => void;
   onOpenAlertsModal: () => void;
   user: AuthUser | null;
-  onLogout: () => void;
   currentPage: string;
   connectionState?: 'LIVE' | 'DEGRADED' | 'RECONNECTING' | 'OFFLINE';
   onOpenCommandPalette: () => void;
@@ -29,13 +28,13 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCopilot,
   onOpenAlertsModal,
   user,
-  onLogout,
   currentPage,
   connectionState = 'LIVE',
   onOpenCommandPalette,
   onOpenMobileNav,
   sidebarCollapsed,
 }) => {
+
   const [timeStr, setTimeStr] = useState<string>('');
 
   useEffect(() => {
@@ -155,15 +154,8 @@ export const Header: React.FC<HeaderProps> = ({
           <Sparkles className="w-3.5 h-3.5 text-purple-400" />
           <span className="hidden sm:inline">Ask Copilot</span>
         </button>
-
-        <button
-          type="button"
-          onClick={onLogout}
-          className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/10"
-        >
-          Logout
-        </button>
       </div>
     </header>
   );
 };
+

@@ -38,9 +38,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   mobileOpen,
   onCloseMobile,
 }) => {
-  const roleName = user?.role?.name ?? 'Operator';
-  const canViewAdministration = roleName === 'Admin' || roleName === 'Supervisor';
-
   const navLinks = [
     { to: '/', label: 'Overview', icon: LayoutDashboard },
     { to: '/live', label: 'Live Streams', icon: Camera },
@@ -52,8 +49,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { to: '/digital-twin', label: 'Digital Twin', icon: MapPin },
     { to: '/dna', label: 'Behaviour DNA', icon: Dna },
     { to: '/human-review', label: 'Human Review', icon: Shield },
-    ...(canViewAdministration ? [{ to: '/session', label: 'Session', icon: Shield }] : []),
   ];
+
 
   return (
     <>

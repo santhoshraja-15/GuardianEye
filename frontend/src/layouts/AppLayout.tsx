@@ -20,15 +20,14 @@ const pageTitles: Record<string, string> = {
   '/prevention': 'Prevention Studio',
   '/digital-twin': 'Digital Twin',
   '/dna': 'Behaviour DNA',
-  '/login': 'Authentication',
-  '/unauthorized': 'Access Restricted',
-  '/session-expired': 'Session Expired',
+  '/analytics': 'Analytics',
+  '/human-review': 'Human Review',
 };
 
 export function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, clearSession } = useSessionStore();
+  const { user } = useSessionStore();
   const { sidebarCollapsed, toggleSidebar, selectedWarehouseId, connectionState } = useAppStore();
   const { data: alerts } = useAlerts();
   const openAlertsCount = alerts?.filter((alert) => alert.status === 'OPEN').length ?? 0;
@@ -61,11 +60,6 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const currentPage = useMemo(() => pageTitles[location.pathname] ?? 'Workspace', [location.pathname]);
 
-  const handleLogout = () => {
-    clearSession();
-    navigate('/login', { replace: true });
-  };
-
   return (
     <div className="min-h-screen bg-[#0B0F17] text-gray-100 flex">
       <Sidebar
@@ -87,7 +81,6 @@ export function AppLayout({ children }: AppLayoutProps) {
           onOpenCopilot={() => setCopilotOpen(true)}
           onOpenAlertsModal={() => navigate('/incidents')}
           user={user}
-          onLogout={handleLogout}
           currentPage={currentPage}
           connectionState={connectionState}
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
@@ -96,6 +89,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         />
         <main className="flex-1 min-w-0 mt-16 p-6 md:p-8 overflow-y-auto">{children}</main>
       </div>
+
 
       {commandPaletteOpen && (
         <div

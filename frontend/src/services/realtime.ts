@@ -21,18 +21,20 @@ export interface RealtimeEventEnvelope {
 const INITIAL_RECONNECT_DELAY_MS = 1000;
 const MAX_RECONNECT_DELAY_MS = 15_000;
 
-export function buildRealtimeConnectionUrl(token: string, warehouseId: string | null): string {
+export function buildRealtimeConnectionUrl(token: string | null = null, warehouseId: string | null = null): string {
   // window.location.host includes the port (hostname alone does not) — the
   // REST API client resolves its relative baseURL against the same origin
   // (including port) the page was served from, so the WebSocket must match
   // it exactly or it silently targets the wrong port (e.g. the protocol's
   // default 80/443) whenever the app isn't served from one of those.
-  const host = window.location.host;
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = typeof window !== 'undefined' ? window.location.host : 'localhost:3000';
+  const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const base = `${protocol}//${host}${appConfig.apiBaseUrl.replace('/api/v1', '')}`;
   const url = new URL(`${base}/api/v1/ws/events`);
 
-  url.searchParams.set('token', token);
+  if (token) {
+    url.searchParams.set('token', token);
+  }
   if (warehouseId) {
     url.searchParams.set('warehouse_id', warehouseId);
   }
@@ -54,16 +56,17 @@ export class RealtimeSocketManager {
   ) {}
 
   public connect(): void {
-    const token = this.getToken();
     const warehouseId = this.getWarehouseId();
 
-    if (!token || !warehouseId) {
+    if (!warehouseId) {
       this.isExplicitDisconnect = true;
       this.clearReconnectTimer();
       this.closeSocket(true);
       this.setConnectionState('OFFLINE');
       return;
     }
+
+    const token = this.getToken();
 
     this.isExplicitDisconnect = false;
 
@@ -123,13 +126,13 @@ export class RealtimeSocketManager {
       return;
     }
 
-    const token = this.getToken();
     const warehouseId = this.getWarehouseId();
 
-    if (!token || !warehouseId) {
+    if (!warehouseId) {
       this.setConnectionState('OFFLINE');
       return;
     }
+
 
     if (this.reconnectTimer) {
       return;

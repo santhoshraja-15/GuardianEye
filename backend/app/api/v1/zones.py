@@ -33,8 +33,7 @@ def list_zones(
     response_model=ZoneResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create Zone",
-    description="Define a new warehouse polygon zone (Supervisor and Admin only).",
-    dependencies=[Depends(require_roles(["Admin", "Supervisor"]))],
+    description="Define a new warehouse polygon zone.",
 )
 def create_zone(
     zone_in: ZoneCreate,
@@ -42,6 +41,7 @@ def create_zone(
     current_user: User = Depends(get_current_user),
 ) -> ZoneResponse:
     return spatial_service.create_zone(db, zone_in)
+
 
 
 @router.get(

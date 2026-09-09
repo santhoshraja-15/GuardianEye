@@ -254,13 +254,16 @@ describe('realtime websocket contract', () => {
     expect(MockWebSocket.instances[0].close).toHaveBeenCalledTimes(1);
   });
 
-  it('14. unauthenticated: no socket is created', () => {
-    const manager = new RealtimeSocketManager(new QueryClient(), () => null, () => 'warehouse-01', vi.fn());
-
-    manager.connect();
-
+  it('14. open access: socket connects without token, and no socket is created without warehouse', () => {
+    const noWarehouseManager = new RealtimeSocketManager(new QueryClient(), () => null, () => null, vi.fn());
+    noWarehouseManager.connect();
     expect(MockWebSocket.instances).toHaveLength(0);
+
+    const openAccessManager = new RealtimeSocketManager(new QueryClient(), () => null, () => 'warehouse-01', vi.fn());
+    openAccessManager.connect();
+    expect(MockWebSocket.instances).toHaveLength(1);
   });
+
 
   it('15. unexpected close: triggers an automatic reconnect', () => {
     const states: string[] = [];

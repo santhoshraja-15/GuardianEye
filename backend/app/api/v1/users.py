@@ -19,8 +19,7 @@ router = APIRouter()
     response_model=List[UserResponse],
     status_code=status.HTTP_200_OK,
     summary="List Users",
-    description="Retrieve all registered users (Admin and Supervisor only).",
-    dependencies=[Depends(require_roles(["Admin", "Supervisor"]))],
+    description="Retrieve all registered users.",
 )
 def list_users(
     skip: int = 0,
@@ -37,7 +36,6 @@ def list_users(
     status_code=status.HTTP_200_OK,
     summary="Get User By ID",
     description="Retrieve specific user details.",
-    dependencies=[Depends(require_roles(["Admin", "Supervisor"]))],
 )
 def get_user_by_id(user_id: str, db: Session = Depends(get_db)) -> User:
     user = db.query(User).filter(User.id == user_id).first()
@@ -51,14 +49,14 @@ def get_user_by_id(user_id: str, db: Session = Depends(get_db)) -> User:
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
     summary="Update User Profile / Status",
-    description="Update user status, role, or credentials (Admin only).",
-    dependencies=[Depends(require_roles(["Admin"]))],
+    description="Update user status, role, or credentials.",
 )
 def update_user(
     user_id: str,
     user_update: UserUpdate,
     db: Session = Depends(get_db),
 ) -> User:
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise NotFoundException("User", user_id)

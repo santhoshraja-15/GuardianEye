@@ -65,15 +65,15 @@ class DigitalTwinService:
         zones_list = [
             ZoneTopology(
                 zone_id=z.id,
-                zone_code=z.zone_code,
-                zone_name=z.zone_name,
+                zone_code=z.code,
+                zone_name=z.name,
                 zone_type=z.zone_type,
                 polygon_points=(
                     json.loads(z.polygon_coordinates)
                     if z.polygon_coordinates and z.polygon_coordinates.startswith("[")
                     else []
                 ),
-                risk_multiplier=z.risk_multiplier,
+                risk_multiplier=z.risk_weight,
             )
             for z in wh.zones
         ]
@@ -82,8 +82,8 @@ class DigitalTwinService:
             CameraTopology(
                 camera_id=c.id,
                 camera_code=c.camera_code,
-                camera_name=c.camera_name,
-                position_xyz=[10.0, 10.0, 6.0],
+                camera_name=c.name,
+                position_xyz=[c.location_x or 10.0, c.location_y or 10.0, c.location_z or 6.0],
                 coverage_zones=[c.zone_id] if c.zone_id else [],
             )
             for c in wh.cameras
