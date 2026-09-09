@@ -13,7 +13,10 @@ from backend.app.api.v1 import (
     health,
     incidents,
     interactions,
+    learning,
+    prevention,
     replay,
+    reviews,
     risks,
     storage,
     tracks,
@@ -63,4 +66,14 @@ api_v1_router.include_router(
 api_v1_router.include_router(
     assistant.router, prefix="/assistant", tags=["Assistant Copilot"]
 )
+api_v1_router.include_router(
+    reviews.router, prefix="/reviews", tags=["Human Review"]
+)
+api_v1_router.include_router(
+    learning.router, prefix="/learning", tags=["Learning & Models"]
+)
+api_v1_router.include_router(
+    prevention.router, prefix="/prevention", tags=["Prevention & SOPs"]
+)
 api_v1_router.include_router(ws.router, prefix="/ws", tags=["Realtime"])
+

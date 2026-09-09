@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, CircleDashed, FileText, ShieldAlert, Sparkles, TriangleAlert } from 'lucide-react';
 import { useIncidents } from '../hooks/useIncidents';
+import { api } from '../services/api';
 
 const behaviourTaxonomy = [
   'B01_DROP',
@@ -86,17 +87,37 @@ export const HumanReviewPage: React.FC = () => {
       ? 'High-priority review'
       : 'Human review pending'
     : 'No incident selected';
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmitReview = () => {
+  const handleSubmitReview = async () => {
     if (!selectedIncident) {
       return;
     }
 
-    const finalNotes = draft.notes.trim() || 'No reviewer notes recorded.';
-    setSubmitted(
-      `Decision captured for ${selectedIncident.incident_code}: ${draft.verdict}. ${draft.verdict === 'CHANGE_BEHAVIOUR' ? `Corrected behaviour: ${draft.correctedBehaviour}.` : ''} Notes: ${finalNotes}`,
-    );
+    setIsSubmitting(true);
+    try {
+      const finalNotes = draft.notes.trim() || 'No reviewer notes recorded.';
+      await api.submitHumanReview({
+        incident_id: selectedIncident.id,
+        review_outcome: draft.verdict,
+        corrected_behaviour_code: draft.verdict === 'CHANGE_BEHAVIOUR' ? draft.correctedBehaviour : undefined,
+        reviewer_notes: finalNotes,
+        is_curated_for_training: true,
+      });
+
+      setSubmitted(
+        `Decision captured for ${selectedIncident.incident_code}: ${draft.verdict}. ${
+          draft.verdict === 'CHANGE_BEHAVIOUR' ? `Corrected behaviour: ${draft.correctedBehaviour}.` : ''
+        } Review saved to active learning dataset.`,
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Review submission failed';
+      setSubmitted(`Error saving review: ${msg}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
 
   return (
     <div className="space-y-6 pb-12">

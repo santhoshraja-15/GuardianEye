@@ -59,7 +59,19 @@ def create_application() -> FastAPI:
     # 3. Mount API Routers
     app.include_router(api_v1_router, prefix=settings.API_V1_STR)
 
-    # 4. Root Health / Liveness
+    # 4. Mount Static Assets & Storage Directories
+    from pathlib import Path
+    from fastapi.staticfiles import StaticFiles
+
+    storage_path = Path(settings.LOCAL_STORAGE_DIR).resolve()
+    storage_path.mkdir(parents=True, exist_ok=True)
+    app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
+
+    sample_videos_path = Path("./Sample videos").resolve()
+    if sample_videos_path.is_dir():
+        app.mount("/sample_videos", StaticFiles(directory=str(sample_videos_path)), name="sample_videos")
+
+    # 5. Root Health / Liveness
     @app.get("/health", tags=["Root"])
     async def root_health():
         return {

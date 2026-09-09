@@ -1,6 +1,7 @@
 """
 Evidence Service for Packaging and Cryptographic Verification
 """
+from dataclasses import asdict
 import json
 from typing import Optional
 from sqlalchemy import select
@@ -23,7 +24,7 @@ class EvidenceService:
             pre_event_seconds=manifest.pre_event_seconds,
             post_event_seconds=manifest.post_event_seconds,
             sha256_checksum=manifest.clip_sha256,
-            overlay_data=json.dumps([k.__dict__ for k in manifest.keyframes]),
+            overlay_data=json.dumps([asdict(k) for k in manifest.keyframes]),
         )
         db.add(pkg)
         db.commit()

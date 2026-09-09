@@ -90,4 +90,66 @@ export const GuardianAPI = {
     const res = await apiClient.post<AssistantQueryResponse>('/assistant/chat', { query });
     return res.data;
   },
+
+  async submitHumanReview(payload: {
+    incident_id: string;
+    review_outcome: string;
+    corrected_behaviour_code?: string;
+    reviewer_notes?: string;
+    is_curated_for_training?: boolean;
+  }) {
+    const res = await apiClient.post('/reviews/', payload);
+    return res.data;
+  },
+
+  async getIncidentReviews(incidentId: string) {
+    const res = await apiClient.get(`/reviews/incident/${incidentId}`);
+    return res.data;
+  },
+
+  async getPreventionRules() {
+    const res = await apiClient.get('/prevention/rules');
+    return res.data;
+  },
+
+  async getRecommendations() {
+    const res = await apiClient.get('/prevention/recommendations');
+    return res.data;
+  },
+
+  async getRootCauses() {
+    const res = await apiClient.get('/prevention/root-causes');
+    return res.data;
+  },
+
+  async getModels() {
+    const res = await apiClient.get('/learning/models');
+    return res.data;
+  },
+
+  async getDatasets() {
+    const res = await apiClient.get('/learning/datasets');
+    return res.data;
+  },
+
+  async processVideo(videoId: string) {
+    const res = await apiClient.post(`/videos/${videoId}/process`);
+    return res.data;
+  },
+
+  async uploadVideo(file: File, cameraId?: string, autoProcess = true) {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (cameraId) formData.append('camera_id', cameraId);
+    formData.append('auto_process', String(autoProcess));
+
+    const res = await apiClient.post('/videos/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
 };
+
+export const api = GuardianAPI;
+
+

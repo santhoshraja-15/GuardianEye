@@ -30,7 +30,7 @@ export interface VideoItem {
   height: number;
   codec: string;
   checksum_sha256: string;
-  status: 'QUEUED' | 'PROCESSING' | 'PROCESSED' | 'FAILED';
+  status: 'UPLOADED' | 'QUEUED' | 'PROCESSING' | 'PROCESSED' | 'COMPLETED' | 'FAILED' | string;
   created_at: string;
 }
 
@@ -259,3 +259,75 @@ export interface CounterfactualSim {
   risk_delta: number;
   simulation_method: string;
 }
+
+export interface HumanReviewPayload {
+  incident_id: string;
+  review_outcome: 'CORRECT' | 'INCORRECT' | 'CHANGE_BEHAVIOUR' | 'UNCERTAIN';
+  corrected_behaviour_code?: string;
+  reviewer_notes?: string;
+  is_curated_for_training?: boolean;
+}
+
+export interface HumanReviewItem {
+  id: string;
+  incident_id: string;
+  reviewed_by: string;
+  review_outcome: string;
+  corrected_behaviour_code?: string;
+  reviewer_notes?: string;
+  is_curated_for_training: boolean;
+  created_at: string;
+}
+
+export interface PreventionRuleItem {
+  behaviour_code: string;
+  rule_name: string;
+  description: string;
+  risk_category: string;
+  severity_default: string;
+  sop_citation: string;
+  detection_threshold_description: string;
+}
+
+export interface RecommendationItem {
+  id: string;
+  incident_id: string;
+  action_title: string;
+  description: string;
+  prevention_type: string;
+  estimated_risk_reduction_pct: number;
+  status: string;
+  created_at: string;
+}
+
+export interface RootCauseItem {
+  id: string;
+  incident_id: string;
+  cause_category: string;
+  observed_factors: string;
+  inferred_factors: string;
+  confidence: number;
+  created_at: string;
+}
+
+export interface ModelArtifactItem {
+  id: string;
+  name: string;
+  model_type: string;
+  version: string;
+  framework: string;
+  artifact_path: string;
+  status: string;
+  approved_by?: string;
+  approved_at?: string;
+  created_at: string;
+}
+
+export interface DatasetItem {
+  id: string;
+  name: string;
+  description?: string;
+  dataset_type: string;
+  created_at: string;
+}
+

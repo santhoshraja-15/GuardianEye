@@ -59,18 +59,30 @@ if sync_database_url.startswith("postgresql+psycopg://"):
 elif sync_database_url.startswith("postgresql://"):
     sync_database_url = sync_database_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
-# SQLite fallback compatibility for testing environments
+# SQLite fallback compatibility for testing environments or when PostgreSQL is unavailable
 if "sqlite" in sync_database_url:
     engine = create_engine(sync_database_url, connect_args={"check_same_thread": False})
 else:
-    engine = create_engine(
-        sync_database_url,
-        pool_pre_ping=True,
-        pool_size=10,
-        max_overflow=20,
-    )
+    try:
+        engine = create_engine(
+            sync_database_url,
+            pool_pre_ping=True,
+            pool_size=10,
+            max_overflow=20,
+            connect_args={"connect_timeout": 2},
+        )
+        with engine.connect() as conn:
+            pass
+    except Exception:
+        import os
+        from pathlib import Path
+        db_dir = Path("./data").resolve()
+        db_dir.mkdir(parents=True, exist_ok=True)
+        sqlite_url = f"sqlite:///{db_dir / 'guardian_eye.db'}"
+        engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 
 def get_db() -> Generator[Any, None, None]:

@@ -119,10 +119,27 @@ class StorageService:
 
     def get_file_path(self, relative_path: str) -> Path:
         """Resolve and verify existence of a stored file"""
-        target = (self.local_dir / relative_path).resolve()
-        if not str(target).startswith(str(self.local_dir)) or not target.is_file():
-            raise NotFoundException("StorageFile", relative_path)
-        return target
+        clean_rel = relative_path.lstrip("/\\")
+        if clean_rel.startswith("storage/data/"):
+            clean_rel = clean_rel[len("storage/data/"):]
+        elif clean_rel.startswith("storage/"):
+            clean_rel = clean_rel[len("storage/"):]
+
+        target = (self.local_dir / clean_rel).resolve()
+        if target.is_file():
+            return target
+
+        alt_targets = [
+            (Path("./storage") / clean_rel).resolve(),
+            (Path("./storage/data") / clean_rel).resolve(),
+            (Path("./storage/videos") / Path(clean_rel).name).resolve(),
+            (Path("./Sample videos") / Path(clean_rel).name).resolve(),
+        ]
+        for alt in alt_targets:
+            if alt.is_file():
+                return alt
+
+        raise NotFoundException("StorageFile", relative_path)
 
     def delete_file(self, relative_path: str) -> bool:
         """Delete a file from storage"""

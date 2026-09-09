@@ -99,3 +99,30 @@ class VideoService:
             .order_by(ProcessingJob.created_at.desc())
             .all()
         )
+
+    @staticmethod
+    def create_or_get_pending_job(db: Session, video_id: str) -> ProcessingJob:
+        video = VideoService.get_video_by_id(db, video_id)
+        job = (
+            db.query(ProcessingJob)
+            .filter(ProcessingJob.video_id == video_id, ProcessingJob.job_status.in_(["PENDING", "RUNNING"]))
+            .first()
+        )
+        if not job:
+            total_frames = int(video.duration_seconds * video.fps) if video.duration_seconds and video.fps else 100
+            job = ProcessingJob(
+                video_id=video.id,
+                job_status="PENDING",
+                progress_percentage=0.0,
+                frames_processed=0,
+                total_frames=total_frames,
+            )
+            db.add(job)
+            db.commit()
+            db.refresh(job)
+        return job
+
+    @staticmethod
+    def process_video_job(db: Session, job_id: str) -> bool:
+        from backend.app.workers.video_worker import video_worker
+        return video_worker.process_video_job(db, job_id)
