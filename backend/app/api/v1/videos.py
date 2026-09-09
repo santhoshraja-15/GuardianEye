@@ -2,7 +2,7 @@
 Video Ingestion and Video Management API Endpoints
 """
 from typing import List, Optional
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile, status
 from sqlalchemy.orm import Session
 from backend.app.api.deps import get_current_user
 from backend.app.database.session import SessionLocal, get_db
