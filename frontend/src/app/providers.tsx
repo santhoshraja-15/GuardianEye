@@ -32,9 +32,16 @@ export function AppProviders({ children }: AppProvidersProps) {
   const accessToken = useSessionStore((state) => state.accessToken);
   const selectedWarehouseId = useAppStore((state) => state.selectedWarehouseId);
 
+  // Sync the persisted theme to the <html data-theme="…"> attribute.
+  // This runs on mount and whenever the user toggles the theme, giving
+  // instant no-reload switching via the CSS [data-theme="light"] overrides.
+  const theme = useAppStore((state) => state.theme);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   useEffect(() => {
     manager.connect();
-
     return () => {
       manager.disconnect();
     };

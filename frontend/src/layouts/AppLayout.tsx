@@ -61,7 +61,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   const currentPage = useMemo(() => pageTitles[location.pathname] ?? 'Workspace', [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-[#0B0F17] text-gray-100 flex">
+    // ge-layout-root: targeted by [data-theme="light"] .ge-layout-root in index.css
+    <div className="ge-layout-root min-h-screen bg-[#0B0F17] text-gray-100 flex">
       <Sidebar
         alertCount={openAlertsCount}
         onOpenCopilot={() => setCopilotOpen(true)}
@@ -93,16 +94,16 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {commandPaletteOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/70 pt-24"
+          className="ge-command-overlay fixed inset-0 z-50 flex items-start justify-center bg-slate-950/70 pt-24"
           onClick={() => setCommandPaletteOpen(false)}
         >
           <div
             role="dialog"
             aria-label="Command palette"
-            className="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#0F172A] shadow-2xl shadow-blue-950/30 p-4"
+            className="ge-command-panel w-full max-w-2xl rounded-2xl border border-white/10 bg-[#0F172A] shadow-2xl shadow-blue-950/30 p-4"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-gray-300">
+            <div className="ge-command-input-row flex items-center gap-3 rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-gray-300">
               <span className="text-gray-500">⌘</span>
               <input
                 autoFocus
@@ -129,7 +130,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     }
                     navigate(route);
                   }}
-                  className="flex w-full items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-left hover:border-blue-500/40 hover:bg-blue-500/10"
+                  className="ge-command-item flex w-full items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-left hover:border-blue-500/40 hover:bg-blue-500/10"
                 >
                   <span>{label}</span>
                   <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500">{route}</span>

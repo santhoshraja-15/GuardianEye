@@ -10,6 +10,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import type { AuthUser } from '../../types/auth';
+import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   openAlertsCount: number;
@@ -72,23 +73,23 @@ export const Header: React.FC<HeaderProps> = ({
           type="button"
           aria-label="Open navigation"
           onClick={onOpenMobileNav}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:border-white/20 transition-all md:hidden"
+          className="ge-mobile-menu-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:border-white/20 transition-all md:hidden"
         >
           <Menu className="w-4 h-4" />
         </button>
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-gray-500">Workspace</div>
-          <div className="text-sm font-medium text-white truncate">{currentPage}</div>
+          <div className="ge-page-label text-[10px] uppercase tracking-[0.18em] text-gray-500">Workspace</div>
+          <div className="ge-page-title text-sm font-medium text-white truncate">{currentPage}</div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-2 md:gap-3">
         <div className="relative hidden md:block w-80 xl:w-96">
           <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <button
             type="button"
             onClick={onOpenCommandPalette}
-            className="w-full bg-[#111827] border border-white/10 rounded-lg pl-9 pr-10 py-1.5 text-left text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500/50 transition-colors"
+            className="ge-search-btn w-full bg-[#111827] border border-white/10 rounded-lg pl-9 pr-10 py-1.5 text-left text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500/50 transition-colors"
           >
             Search incidents, cameras, alerts, evidence...
           </button>
@@ -97,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </div>
 
-        <div className="hidden lg:flex font-mono text-xs text-gray-400 bg-black/40 border border-white/5 px-3 py-1.5 rounded-lg items-center gap-2">
+        <div className="ge-time-badge hidden lg:flex font-mono text-xs text-gray-400 bg-black/40 border border-white/5 px-3 py-1.5 rounded-lg items-center gap-2">
           <Terminal className="w-3.5 h-3.5 text-blue-400" />
           <span>{timeStr}</span>
         </div>
@@ -116,8 +117,11 @@ export const Header: React.FC<HeaderProps> = ({
           <span>ZERO DRIFT</span>
         </div>
 
+        {/* Theme toggle — placed between ZERO DRIFT and user badge */}
+        <ThemeToggle />
+
         {user ? (
-          <div className="hidden sm:flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200">
+          <div className="ge-user-badge hidden sm:flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200">
             <span className="font-medium text-white">{user.full_name}</span>
             <span className="text-slate-400">{user.role?.name ?? 'Operator'}</span>
           </div>
@@ -127,7 +131,7 @@ export const Header: React.FC<HeaderProps> = ({
           type="button"
           aria-label={openAlertsCount > 0 ? `Open alerts (${openAlertsCount} open)` : 'Open alerts'}
           onClick={onOpenAlertsModal}
-          className="relative p-2 rounded-lg bg-[#111827] border border-white/10 text-gray-300 hover:text-white hover:border-white/20 transition-all"
+          className="ge-alert-btn relative p-2 rounded-lg bg-[#111827] border border-white/10 text-gray-300 hover:text-white hover:border-white/20 transition-all"
         >
           <Bell className="w-4 h-4" />
           {openAlertsCount > 0 && (
@@ -139,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onOpenCommandPalette}
-          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-medium hover:bg-blue-600/30 transition-all"
+          className="ge-cmd-btn hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-medium hover:bg-blue-600/30 transition-all"
         >
           <Command className="w-3.5 h-3.5" />
           <span>Command</span>
@@ -149,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({
           type="button"
           aria-label="Ask Copilot"
           onClick={onOpenCopilot}
-          className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-medium hover:bg-blue-600/30 transition-all"
+          className="ge-copilot-btn flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-medium hover:bg-blue-600/30 transition-all"
         >
           <Sparkles className="w-3.5 h-3.5 text-purple-400" />
           <span className="hidden sm:inline">Ask Copilot</span>
@@ -158,4 +162,3 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
-
