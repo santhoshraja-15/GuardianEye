@@ -144,14 +144,14 @@ class AssistantService:
                         source_id=r.id,
                         title=f"Action: {r.action_title}",
                         confidence=0.97,
-                        snippet=f"Priority: {r.priority}, Category: {r.category}. Description: {r.action_description}",
+                        snippet=f"Type: {r.prevention_type}, Est. Risk Reduction: {r.estimated_risk_reduction_pct}%, Status: {r.status}. Description: {r.description}",
                     )
                 )
 
             if recs:
                 answer = (
                     f"Identified {len(recs)} corrective recommendation(s) generated from automated root-cause analysis (RCA). "
-                    f"Top priority action: **{recs[0].action_title}** ({recs[0].priority} priority)."
+                    f"Top recommendation: **{recs[0].action_title}** ({recs[0].prevention_type} — est. {recs[0].estimated_risk_reduction_pct}% risk reduction)."
                 )
             else:
                 answer = (
@@ -174,7 +174,7 @@ class AssistantService:
                         source_id=inc.id,
                         title=f"{inc.incident_code}: {inc.title}",
                         confidence=0.99,
-                        snippet=f"Severity: {inc.severity}, Status: {inc.status}, Risk: {inc.risk_score}/100",
+                        snippet=f"Severity: {inc.severity}, Status: {inc.status}. Summary: {inc.summary[:120]}...",
                     )
                 )
 

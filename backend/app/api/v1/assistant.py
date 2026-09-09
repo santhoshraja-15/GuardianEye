@@ -12,7 +12,8 @@ router = APIRouter(tags=["Assistant Copilot"])
 
 
 @router.post("/chat", response_model=AssistantQueryResponse)
-async def chat_with_assistant(
+@router.post("/query", response_model=AssistantQueryResponse)
+def chat_with_assistant(
     payload: AssistantQueryRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
