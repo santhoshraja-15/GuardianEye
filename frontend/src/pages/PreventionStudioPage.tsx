@@ -148,7 +148,7 @@ export const PreventionStudioPage: React.FC = () => {
               </h3>
             </div>
 
-            <div className="space-y-3">
+            <div className="ge-scroll-panel space-y-3 max-h-[420px] pr-1">
               {displayRecs.length > 0 ? (
                 displayRecs.map((rec) => (
                   <div
@@ -190,7 +190,7 @@ export const PreventionStudioPage: React.FC = () => {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="ge-scroll-panel grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[420px] pr-1">
               {rules.map((rule) => (
                 <div
                   key={rule.behaviour_code}

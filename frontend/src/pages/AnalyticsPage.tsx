@@ -244,7 +244,7 @@ export const AnalyticsPage: React.FC = () => {
               <MapPinned className="h-4 w-4 text-[#b91c1c]" />
             </div>
 
-            <div className="space-y-3">
+            <div className="ge-scroll-panel space-y-3 max-h-[320px] pr-1">
               {hotspotMatches.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-[#E9EDF2] p-4 text-xs text-[#9DAFC5]">
                   No hotspot drill-down available for the selected zone.
@@ -268,7 +268,7 @@ export const AnalyticsPage: React.FC = () => {
               <Target className="h-4 w-4 text-[#2F52D6]" />
             </div>
 
-            <div className="space-y-3">
+            <div className="ge-scroll-panel space-y-3 max-h-[320px] pr-1">
               {incidentMatches.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-[#E9EDF2] p-4 text-xs text-[#9DAFC5]">
                   No backend incidents match this selected risk hotspot.

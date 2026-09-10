@@ -336,7 +336,7 @@ export const DigitalTwinPage: React.FC = () => {
               Zones
             </div>
 
-            <div className="space-y-3">
+            <div className="ge-scroll-panel space-y-3 max-h-[360px] pr-1">
               {topology?.zones.map((zone) => (
                 <button
                   key={zone.zone_id}
@@ -372,7 +372,7 @@ export const DigitalTwinPage: React.FC = () => {
                 No heatmap data is currently available from the backend.
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="ge-scroll-panel space-y-2 max-h-[280px] pr-1">
                 {summary?.risk_heatmaps.map((point, index) => (
                   <div key={`${point.zone_code}-${index}`} className="rounded border border-[#E9EDF2] bg-[#F8FAFC] p-2">
                     <div className="flex items-center justify-between text-[10px] text-[#334155]">

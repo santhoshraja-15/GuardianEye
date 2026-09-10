@@ -396,7 +396,7 @@ export const LiveStreamsPage: React.FC = () => {
               <span className="text-[10px] uppercase tracking-[0.18em] text-[#6F7F98]">Secondary views</span>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="ge-scroll-panel grid gap-3 md:grid-cols-2 max-h-[320px] pr-1">
               {videos.map((video) => (
                 <button
                   key={video.id}
@@ -461,6 +461,7 @@ export const LiveStreamsPage: React.FC = () => {
             <div className="space-y-3">
               <div className="rounded-lg border border-[#E9EDF2] bg-[#F8FAFC] p-3">
                 <div className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#6F7F98]">Objects currently in frame</div>
+                <div className="ge-scroll-panel max-h-[200px] pr-1">
                 {liveEntities.length === 0 ? (
                   <div className="text-xs text-[#9DAFC5]">Nothing detected at the current playhead.</div>
                 ) : (
@@ -478,10 +479,12 @@ export const LiveStreamsPage: React.FC = () => {
                     </button>
                   ))
                 )}
+                </div>
               </div>
 
               <div className="rounded-lg border border-[#E9EDF2] bg-[#F8FAFC] p-3">
                 <div className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#6F7F98]">All tracks (full video)</div>
+                <div className="ge-scroll-panel max-h-[220px] pr-1">
                 {tracks.length === 0 ? (
                   <div className="text-xs text-[#9DAFC5]">No tracks exposed by the backend.</div>
                 ) : (
@@ -500,10 +503,12 @@ export const LiveStreamsPage: React.FC = () => {
                     </button>
                   ))
                 )}
+                </div>
               </div>
 
               <div className="rounded-lg border border-[#E9EDF2] bg-[#F8FAFC] p-3">
                 <div className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#6F7F98]">Behaviour</div>
+                <div className="ge-scroll-panel max-h-[220px] pr-1">
                 {behaviourEvents.length === 0 ? (
                   <div className="text-xs text-[#9DAFC5]">No behaviour events are available for this camera.</div>
                 ) : (
@@ -518,10 +523,12 @@ export const LiveStreamsPage: React.FC = () => {
                     </div>
                   ))
                 )}
+                </div>
               </div>
 
               <div className="rounded-lg border border-[#E9EDF2] bg-[#F8FAFC] p-3">
                 <div className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#6F7F98]">Alerts</div>
+                <div className="ge-scroll-panel max-h-[200px] pr-1">
                 {activeAlerts.length === 0 ? (
                   <div className="text-xs text-[#9DAFC5]">No active alerts are available.</div>
                 ) : (
@@ -535,6 +542,7 @@ export const LiveStreamsPage: React.FC = () => {
                     </div>
                   ))
                 )}
+                </div>
               </div>
 
               <div className="rounded-lg border border-[#E9EDF2] bg-[#F8FAFC] p-3">
@@ -555,7 +563,7 @@ export const LiveStreamsPage: React.FC = () => {
               <h2 className="text-sm font-bold text-[#18243A]">Event timeline</h2>
             </div>
 
-            <div className="space-y-3 border-l border-[#E9EDF2] pl-3">
+            <div className="ge-scroll-panel space-y-3 border-l border-[#E9EDF2] pl-3 max-h-[320px] pr-1">
               {relatedIncidents.length === 0 ? (
                 <div className="text-xs text-[#9DAFC5]">No camera-linked incidents are exposed for this view.</div>
               ) : (

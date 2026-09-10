@@ -309,7 +309,7 @@ export const DashboardPage: React.FC = () => {
                 <MapPinned className="h-4 w-4 text-[#b91c1c]" />
               </div>
 
-              <div className="space-y-3">
+              <div className="ge-scroll-panel space-y-3 max-h-[360px] pr-1">
                 {(summary?.risk_heatmaps ?? []).length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-[#CBD5E1] p-4 text-xs text-[#9DAFC5]">
                     No hotspot zones are exposed by the backend.
@@ -349,7 +349,7 @@ export const DashboardPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="ge-scroll-panel space-y-3 max-h-[420px] pr-1">
               {incidents.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-[#CBD5E1] p-4 text-xs text-[#9DAFC5]">
                   No incident data is currently available from the backend.
@@ -411,7 +411,7 @@ export const DashboardPage: React.FC = () => {
               <Layers3 className="h-4 w-4 text-[#2F52D6]" />
             </div>
 
-            <div className="space-y-3">
+            <div className="ge-scroll-panel space-y-3 max-h-[360px] pr-1">
               {alerts.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-[#CBD5E1] p-4 text-xs text-[#9DAFC5]">
                   No live alerts are currently available.
@@ -448,7 +448,7 @@ export const DashboardPage: React.FC = () => {
               <CircleAlert className="h-4 w-4 text-[#92400e]" />
             </div>
 
-            <div className="space-y-3 border-l border-[#E9EDF2] pl-4">
+            <div className="ge-scroll-panel space-y-3 border-l border-[#E9EDF2] pl-4 max-h-[420px] pr-1">
               {incidents.length === 0 ? (
                 <div className="text-xs text-[#9DAFC5]">No timeline events available from the backend.</div>
               ) : (

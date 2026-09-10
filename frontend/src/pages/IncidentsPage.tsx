@@ -125,9 +125,9 @@ export const IncidentsPage: React.FC = () => {
       </div>
 
       <div className="glass-panel rounded-xl overflow-hidden border border-[#E9EDF2]">
-        <div className="overflow-x-auto">
+        <div className="ge-scroll-panel overflow-x-auto max-h-[560px]">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F8FAFC] border-b border-[#E9EDF2] text-[#6F7F98] uppercase tracking-wider text-[11px]">
+            <thead className="sticky top-0 z-10 bg-[#F8FAFC] border-b border-[#E9EDF2] text-[#6F7F98] uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="px-6 py-3.5">Incident Code</th>
                 <th className="px-6 py-3.5">Severity</th>
