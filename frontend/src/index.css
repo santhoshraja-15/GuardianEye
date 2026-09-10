@@ -7,6 +7,9 @@
      pairing so no component needs touching to pick up the swap. */
   --font-signifier: 'Plus Jakarta Sans', 'Noto Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-sohne: 'Plus Jakarta Sans', 'Noto Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Brand wordmark only ("GuardianEye" next to the shield mark) — every
+     other heading/body text keeps --font-signifier above. */
+  --font-brand: 'League Spartan', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* ─── THEME — rounded admin blue (AdminMart/Modernize-inspired) ─────────

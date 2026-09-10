@@ -107,9 +107,7 @@ export const LandingPage: React.FC = () => {
 
         <nav className="ge-hero-nav" aria-label="Landing navigation">
           <div className="ge-brand">
-            <div className="ge-brand-mark">
-              <ShieldCheck className="w-5 h-5" aria-hidden="true" />
-            </div>
+            <img src="/images/logo/logo_ge_icon.png" alt="GuardianEye" className="ge-brand-mark" />
             <div>
               <div className="ge-brand-name">
                 Guardian<em>Eye</em>
