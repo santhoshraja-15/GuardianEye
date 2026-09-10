@@ -7,6 +7,9 @@
      pairing so no component needs touching to pick up the swap. */
   --font-signifier: 'Plus Jakarta Sans', 'Noto Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-sohne: 'Plus Jakarta Sans', 'Noto Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Brand wordmark only ("GuardianEye" next to the shield mark) — every
+     other heading/body text keeps --font-signifier above. */
+  --font-brand: 'League Spartan', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* ─── THEME — rounded admin blue (AdminMart/Modernize-inspired) ─────────
@@ -143,6 +146,61 @@ header {
 
 main { background-color: #ffffff; }
 
+/* ─── Page background system (Command Operations shell) ─────────────────
+   Each route paints its own low-contrast artwork behind <main> only —
+   set via inline style (background-image) from getPageBackground() in
+   AppLayout, keyed to the current route. This block supplies the shared,
+   reusable part: a white wash baked in front of the artwork so cards,
+   text, charts and tables always read first, "cover" sizing so the image
+   never tiles or clips oddly, and a static (non-scrolling) attachment so
+   the backdrop stays put — a single still image per page, not a texture
+   that moves under the content — while main's own content scrolls over
+   it. Sidebar and Header keep their own opaque/blurred backgrounds
+   (rules above) and are unaffected. ────────────────────────────────────── */
+main.ge-page-background {
+  position: relative;
+  /* The white wash + saturation boost live on a ::before behind the
+     content (not on `main` itself) — a `filter` on `main` would also
+     blur/desaturate the real cards, text and charts stacked on top of
+     it, not just the backdrop. */
+  isolation: isolate;
+}
+
+main.ge-page-background::before {
+  content: '';
+  position: fixed;
+  inset: 4rem 0 0 0;
+  z-index: -1;
+  background-image: var(--page-bg-image);
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: cover;
+  /* Source artwork is a pale pastel illustration to begin with — push
+     saturation/contrast up so it still reads as artwork instead of
+     washing out to near-white once the overlay tint is applied. */
+  filter: saturate(1.45) contrast(1.1);
+}
+
+main.ge-page-background::after {
+  content: '';
+  position: fixed;
+  inset: 4rem 0 0 0;
+  z-index: -1;
+  background: linear-gradient(rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.55));
+}
+
+/* `position: fixed` on the backdrop layers is unreliable/janky on mobile
+   browsers (notably iOS Safari, which also mis-clips fixed elements
+   sitting behind a scrolling ancestor) — fall back to absolute so the
+   backdrop simply scrolls with the page there. */
+@media (max-width: 768px) {
+  main.ge-page-background::before,
+  main.ge-page-background::after {
+    position: absolute;
+    inset: 0;
+  }
+}
+
 .glass-panel {
   background: #ffffff !important;
   backdrop-filter: none !important;
@@ -262,6 +320,25 @@ main .hover\:border-white\/20:hover { border-color: #CBD5E1 !important; }
 ::-webkit-scrollbar-track  { background: var(--scrollbar-track); }
 ::-webkit-scrollbar-thumb  { background: var(--scrollbar-thumb); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+* { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track); }
+
+/* ─── Contained scroll panels ─────────────────────────────────────────────
+   Long, unbounded lists (incidents, alerts, cameras, tracks, evidence,
+   review queues, ...) get a fixed max-height and scroll internally via
+   this class instead of stretching the whole page — the page/header/
+   sidebar stay put (AppLayout already fixes those; this is what keeps
+   an individual card from ballooning to hundreds of rows tall). The
+   thumb is transparent-tracked and only 6px so it reads as a quiet
+   affordance, not a UI element competing with the content. */
+.ge-scroll-panel {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+.ge-scroll-panel::-webkit-scrollbar { width: 6px; }
+.ge-scroll-panel::-webkit-scrollbar-track { background: transparent; }
+.ge-scroll-panel::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+.ge-scroll-panel::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
 /* ─── Scanline animation for video canvas ───────────────────────────────── */
 @keyframes scanline {

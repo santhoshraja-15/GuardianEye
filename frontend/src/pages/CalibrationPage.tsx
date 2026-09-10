@@ -177,7 +177,7 @@ export const CalibrationPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="glass-panel rounded-xl p-4 space-y-3">
+        <div className="glass-panel rounded-xl p-4 space-y-3 lg:sticky lg:top-24 lg:self-start">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[#6F7F98]">
               <CameraIcon className="w-3.5 h-3.5 text-[#2F52D6]" />
@@ -217,7 +217,7 @@ export const CalibrationPage: React.FC = () => {
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="ge-scroll-panel space-y-2 max-h-[calc(100vh-360px)] pr-1">
             {cameras.map((camera) => (
               <button
                 key={camera.id}

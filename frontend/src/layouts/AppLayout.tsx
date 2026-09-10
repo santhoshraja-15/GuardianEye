@@ -1,9 +1,10 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { CSSProperties, ReactNode, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CopilotChatDrawer } from '../components/copilot/CopilotChatDrawer';
 import { Header } from '../components/layout/Header';
 import { Sidebar } from '../components/layout/Sidebar';
+import { getPageBackground } from '../config/page-backgrounds';
 import { useAlerts } from '../hooks/useAlerts';
 import { useAppStore } from '../stores/app-store';
 import { useSessionStore } from '../stores/session-store';
@@ -61,6 +62,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, [commandPaletteOpen, copilotOpen, mobileNavOpen]);
 
   const currentPage = useMemo(() => pageTitles[location.pathname] ?? 'Workspace', [location.pathname]);
+  const pageBackground = useMemo(() => getPageBackground(location.pathname), [location.pathname]);
 
   return (
     <div className="ge-layout-root min-h-screen bg-white text-[#18243A] flex">
@@ -89,7 +91,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           onOpenMobileNav={() => setMobileNavOpen(true)}
           sidebarCollapsed={sidebarCollapsed}
         />
-        <main className="flex-1 min-w-0 mt-16 p-6 md:p-8 overflow-y-auto">
+        <main
+          className="ge-page-background flex-1 min-w-0 mt-16 p-6 md:p-8 overflow-y-auto"
+          style={{ '--page-bg-image': `url('${pageBackground}')` } as CSSProperties}
+        >
           {/* Page-entry transition: quiet fade + 8px settle, no exit animation
               (the incoming page painting immediately reads as more responsive
               than waiting through an outgoing fade on a data-heavy dashboard). */}

@@ -104,11 +104,12 @@ export const EvidencePage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="space-y-3">
+        <div className="space-y-3 xl:sticky xl:top-24 xl:self-start">
           <div className="text-xs uppercase tracking-wider text-[#6F7F98]">
             Incident evidence
           </div>
 
+          <div className="ge-scroll-panel space-y-3 max-h-[calc(100vh-280px)] pr-1">
           {incidents.length === 0 ? (
             <div className="glass-panel rounded-xl p-4 text-xs text-[#6F7F98]">
               No incident evidence was returned by the backend.
@@ -139,6 +140,7 @@ export const EvidencePage: React.FC = () => {
               </button>
             ))
           )}
+          </div>
         </div>
 
         <div className="lg:col-span-2 space-y-4">

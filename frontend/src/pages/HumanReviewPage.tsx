@@ -134,13 +134,13 @@ export const HumanReviewPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-6">
-        <aside className="glass-panel rounded-xl border border-[#E9EDF2] p-4">
+        <aside className="glass-panel rounded-xl border border-[#E9EDF2] p-4 xl:sticky xl:top-24 xl:self-start">
           <div className="flex items-center gap-2 border-b border-[#E9EDF2] pb-3">
             <FileText className="w-4 h-4 text-[#2F52D6]" />
             <h2 className="text-sm font-bold text-[#18243A]">Review Queue</h2>
           </div>
 
-          <div className="mt-4 space-y-3">
+          <div className="ge-scroll-panel mt-4 space-y-3 max-h-[calc(100vh-280px)] pr-1">
             {incidents.length === 0 ? (
               <div className="rounded-lg border border-dashed border-[#E9EDF2] bg-[#F8FAFC] p-4 text-xs text-[#6F7F98]">
                 No incident records are currently available from the backend review queue.

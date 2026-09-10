@@ -120,19 +120,14 @@
 .ge-brand-mark {
   width: 38px;
   height: 38px;
-  border-radius: 12px;
-  background: var(--accent-bg);
-  color: var(--color-accent-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
 .ge-brand-name {
-  font-family: var(--font-signifier);
-  font-weight: 800;
-  font-size: 16px;
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: 18px;
   letter-spacing: 0.01em;
   line-height: 1;
   color: var(--text-primary);

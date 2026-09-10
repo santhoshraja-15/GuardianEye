@@ -317,7 +317,7 @@ export const VideoAnalysisPage: React.FC = () => {
               Warehouse CCTV Stream Library ({videos.length} Ingested)
             </h3>
 
-            <div className="space-y-2 max-h-[480px] overflow-y-auto">
+            <div className="ge-scroll-panel space-y-2 max-h-[480px] pr-1">
               {videos.map((vid) => (
                 <div
                   key={vid.id}

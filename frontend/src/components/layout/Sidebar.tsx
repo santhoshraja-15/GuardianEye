@@ -69,12 +69,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         <div className="h-16 flex items-center justify-between px-3 border-b border-[#E9EDF2] gap-3">
           <div className={`flex items-center gap-3 ${collapsed ? 'md:justify-center md:w-full' : ''}`}>
-            <div className="w-9 h-9 rounded-xl bg-[#EAF0FF] flex items-center justify-center text-[#2F52D6] shrink-0">
-              <Shield className="w-5 h-5" />
-            </div>
+            <img
+              src="/images/logo/logo_ge_icon.png"
+              alt="GuardianEye"
+              className="h-9 w-9 shrink-0 object-contain"
+            />
             {!collapsed && (
               <div>
-                <div className="font-[family-name:var(--font-signifier)] font-bold text-base leading-none text-[#18243A] flex items-center gap-1">
+                <div className="font-[family-name:var(--font-brand)] font-semibold text-lg leading-none text-[#18243A] flex items-center gap-1">
                   Guardian<span className="text-[#2F52D6]">Eye</span>
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.14em] text-[#9DAFC5] mt-1">
