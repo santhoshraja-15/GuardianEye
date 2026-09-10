@@ -43,6 +43,7 @@ frontend/build/
 .env
 .env.local
 .env.*.local
+.env.example
 *.pem
 *.key
 *.cert
