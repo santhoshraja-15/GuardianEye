@@ -9,16 +9,16 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8011',
         changeOrigin: true,
         ws: true,
       },
       '/storage': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8011',
         changeOrigin: true,
       },
       '/sample_videos': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8011',
         changeOrigin: true,
       },
     },

@@ -42,6 +42,8 @@ def get_video_tracks(
                 velocity_xy=(p.velocity_x, p.velocity_y),
                 confidence=p.confidence,
                 zone_id=p.zone_id,
+                anchor_xy=(p.anchor_x, p.anchor_y) if p.anchor_x is not None else None,
+                normalized_xy=(p.normalized_x, p.normalized_y) if p.normalized_x is not None else None,
             )
             for p in t.track_points
         ]

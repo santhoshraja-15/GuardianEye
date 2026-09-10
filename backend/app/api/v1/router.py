@@ -8,7 +8,9 @@ from backend.app.api.v1 import (
     assistant,
     auth,
     behaviours,
+    cameras,
     digital_twin,
+    events,
     evidence,
     health,
     incidents,
@@ -36,6 +38,8 @@ api_v1_router.include_router(storage.router, prefix="/storage", tags=["Storage"]
 api_v1_router.include_router(videos.router, prefix="/videos", tags=["Videos"])
 api_v1_router.include_router(tracks.router, prefix="/tracks", tags=["Tracking"])
 api_v1_router.include_router(zones.router, prefix="/zones", tags=["Zones"])
+api_v1_router.include_router(cameras.router, prefix="/cameras", tags=["Cameras"])
+api_v1_router.include_router(events.router, prefix="/events", tags=["Spatial Events"])
 api_v1_router.include_router(
     interactions.router, prefix="/interactions", tags=["Interactions"]
 )

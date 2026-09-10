@@ -23,49 +23,49 @@ export const StatCard: React.FC<StatCardProps> = ({
   const getGlow = () => {
     switch (variant) {
       case 'critical':
-        return 'border-red-500/30 text-red-400 bg-red-500/10 glow-critical';
+        return 'border-[rgba(185,28,28,0.3)] text-[#b91c1c] bg-[rgba(185,28,28,0.08)] glow-critical';
       case 'warning':
-        return 'border-amber-500/30 text-amber-400 bg-amber-500/10 glow-medium';
+        return 'border-[rgba(146,64,14,0.3)] text-[#92400e] bg-[rgba(146,64,14,0.08)] glow-medium';
       case 'success':
-        return 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10 glow-low';
+        return 'border-[rgba(21,128,61,0.3)] text-[#15803d] bg-[rgba(21,128,61,0.08)] glow-low';
       case 'blue':
-        return 'border-blue-500/30 text-blue-400 bg-blue-500/10 glow-accent';
+        return 'border-[rgba(47,82,214,0.3)] text-[#2F52D6] bg-[rgba(47,82,214,0.08)] glow-accent';
       default:
-        return 'border-white/10 text-gray-400 bg-white/5';
+        return 'border-[#E9EDF2] text-[#6F7F98] bg-[#F1F5F9]';
     }
   };
 
   return (
-    <div className="glass-panel glass-panel-hover rounded-xl p-5 relative overflow-hidden">
+    <div className="glass-panel glass-panel-hover rounded-[20px] p-5 relative overflow-hidden">
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-[11px] font-mono uppercase tracking-wider text-gray-400">
+          <div className="text-[11px] uppercase tracking-wider text-[#6F7F98]">
             {title}
           </div>
-          <div className="text-2xl font-bold font-mono tracking-tight text-white mt-1">
+          <div className="text-2xl font-medium tracking-tight text-[#18243A] mt-1">
             {value}
           </div>
           {subtitle && (
-            <div className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+            <div className="text-xs text-[#6F7F98] mt-1 flex items-center gap-1.5">
               {subtitle}
             </div>
           )}
         </div>
-        <div className={`p-3 rounded-lg border ${getGlow()}`}>
+        <div className={`p-3 rounded-2xl border ${getGlow()}`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
 
       {trend && (
-        <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-          <span className="text-gray-400">Trend (vs prev 24h)</span>
+        <div className="mt-3 pt-3 border-t border-[#E9EDF2] flex items-center justify-between text-xs">
+          <span className="text-[#6F7F98]">Trend (vs prev 24h)</span>
           <span
-            className={`font-mono font-medium ${
+            className={`font-medium ${
               trendDirection === 'down'
-                ? 'text-emerald-400'
+                ? 'text-[#15803d]'
                 : trendDirection === 'up'
-                ? 'text-red-400'
-                : 'text-gray-300'
+                ? 'text-[#b91c1c]'
+                : 'text-[#334155]'
             }`}
           >
             {trend}

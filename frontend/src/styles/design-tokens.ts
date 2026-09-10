@@ -1,25 +1,37 @@
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
+// ─── Design system — rounded admin blue ─────────────────────────────────
+// A light, near-white admin canvas with AdminMart/Modernize-style blue as
+// the single brand accent, set in Plus Jakarta Sans (Tokotype) throughout,
+// falling back to Noto Sans.
+//
+// Risk-severity colors (low/medium/high/critical) are the one deliberate
+// exception to the accent-blue-only palette: they encode functional safety
+// information (alert/incident severity), not decoration, so they keep the
+// standard green/amber/orange/red convention — retuned to darker, WCAG
+// AA-passing shades against this theme's white/mist surfaces.
 export const designTokens = {
   colors: {
-    background: '#070B12',
-    navigation: '#0B111A',
-    panel: '#101923',
-    panelElevated: '#151F2B',
-    border: '#1D2936',
-    text: '#E5EEF9',
-    textMuted: '#8EA0B6',
-    accent: '#4CC9F0',
-    low: '#34D399',
-    medium: '#FBBF24',
-    high: '#F97316',
-    critical: '#EF4444',
-    white: '#F8FAFC',
-    shadow: 'rgba(2, 6, 23, 0.55)',
+    background: '#ffffff',
+    navigation: '#ffffff',
+    panel: '#F1F5F9',
+    panelElevated: '#ffffff',
+    border: '#E9EDF2',
+    text: '#18243A',
+    textMuted: '#6F7F98',
+    accent: '#5D87FF',
+    accentInk: '#2F52D6',
+    low: '#15803d',
+    medium: '#92400e',
+    high: '#9a3412',
+    critical: '#b91c1c',
+    white: '#ffffff',
+    shadow: 'rgba(4, 23, 43, 0.08)',
   },
   typography: {
-    fontFamily: 'Inter, "Segoe UI", sans-serif',
-    mono: '"IBM Plex Sans", "SFMono-Regular", monospace',
+    fontFamily: '"Plus Jakarta Sans", "Noto Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+    display: '"Plus Jakarta Sans", "Noto Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+    mono: '"Plus Jakarta Sans", "SFMono-Regular", monospace',
     heading: {
       xs: '0.7rem',
       sm: '0.875rem',
@@ -50,16 +62,16 @@ export const designTokens = {
     xxl: 32,
   },
   radius: {
-    sm: 8,
-    md: 12,
-    lg: 16,
-    xl: 20,
-    full: 999,
+    sm: 16,
+    md: 16,
+    lg: 20,
+    xl: 24,
+    full: 9999,
   },
   shadows: {
-    sm: '0 8px 18px rgba(2, 6, 23, 0.28)',
-    md: '0 14px 30px rgba(2, 6, 23, 0.34)',
-    lg: '0 18px 38px rgba(2, 6, 23, 0.42)',
+    sm: '0 0 0 1px rgba(4,23,43,0.05), 0 4px 24px rgba(0,0,0,0.06)',
+    md: '0 0 0 1px rgba(4,23,43,0.05), 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+    lg: '0 0 0 1px rgba(4,23,43,0.05), 0 20px 60px rgba(0,0,0,0.12)',
   },
   transitions: {
     fast: '150ms ease',
@@ -82,27 +94,27 @@ export const designTokens = {
   semantic: {
     low: {
       label: 'LOW',
-      color: '#34D399',
-      bg: 'rgba(52, 211, 153, 0.12)',
-      ring: 'rgba(52, 211, 153, 0.35)',
+      color: '#15803d',
+      bg: 'rgba(21, 128, 61, 0.1)',
+      ring: 'rgba(21, 128, 61, 0.3)',
     },
     medium: {
       label: 'MEDIUM',
-      color: '#FBBF24',
-      bg: 'rgba(251, 191, 36, 0.12)',
-      ring: 'rgba(251, 191, 36, 0.35)',
+      color: '#92400e',
+      bg: 'rgba(146, 64, 14, 0.1)',
+      ring: 'rgba(146, 64, 14, 0.3)',
     },
     high: {
       label: 'HIGH',
-      color: '#F97316',
-      bg: 'rgba(249, 115, 22, 0.12)',
-      ring: 'rgba(249, 115, 22, 0.35)',
+      color: '#9a3412',
+      bg: 'rgba(154, 52, 18, 0.1)',
+      ring: 'rgba(154, 52, 18, 0.3)',
     },
     critical: {
       label: 'CRITICAL',
-      color: '#EF4444',
-      bg: 'rgba(239, 68, 68, 0.12)',
-      ring: 'rgba(239, 68, 68, 0.35)',
+      color: '#b91c1c',
+      bg: 'rgba(185, 28, 28, 0.1)',
+      ring: 'rgba(185, 28, 28, 0.3)',
     },
   },
 } as const;

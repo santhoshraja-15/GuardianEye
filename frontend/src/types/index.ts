@@ -48,6 +48,10 @@ export interface TrackPointResponse {
   velocity_xy: [number, number];
   confidence: number;
   zone_id?: string;
+  // Ground-contact anchor point (see backend TrackPointResponse) — use
+  // this for overlay placement, not a bbox-center derived locally.
+  anchor_xy?: [number, number];
+  normalized_xy?: [number, number];
 }
 
 export interface TrackResponse {
@@ -176,6 +180,7 @@ export interface HeatmapPoint {
   y_normalized: number;
   intensity: number;
   zone_code: string;
+  zone_name: string;
   incident_count: number;
 }
 
@@ -183,7 +188,35 @@ export interface BehaviourDistributionItem {
   behaviour_code: string;
   count: number;
   percentage: number;
-  avg_risk_score: number;
+  // null when no risk assessment exists yet for this behaviour code —
+  // render as "N/A", never as 0 (0 would imply verified zero risk).
+  avg_risk_score: number | null;
+}
+
+export interface RiskTrendPoint {
+  label: string;
+  period_start: string;
+  period_end: string;
+  total_incidents: number;
+  avg_risk_score: number | null;
+}
+
+export interface RiskTrendComparison {
+  period_a_label: string;
+  period_b_label: string;
+  period_a_avg_risk: number | null;
+  period_b_avg_risk: number | null;
+  direction: 'INCREASED' | 'DECREASED' | 'STABLE' | null;
+  percent_change: number | null;
+  data_available: boolean;
+}
+
+export interface AnalyticsProvenance {
+  avg_risk_score_method: string;
+  damage_exposure_method: string;
+  heatmap_method: string;
+  response_time_method: string;
+  generated_at: string;
 }
 
 export interface DashboardSummary {
@@ -191,11 +224,18 @@ export interface DashboardSummary {
   total_incidents_detected: number;
   critical_incidents: number;
   open_alerts: number;
+  // Kept for backward compatibility — mirrors potential_damage_exposure_usd.
   estimated_damage_loss_usd: number;
-  mean_time_to_acknowledge_seconds: number;
+  potential_damage_exposure_usd: number;
+  confirmed_damage_cost_usd: number;
+  // null when there are zero acknowledged alerts to average.
+  mean_time_to_acknowledge_seconds: number | null;
   behaviour_distribution: BehaviourDistributionItem[];
   risk_heatmaps: HeatmapPoint[];
   operational_health_status: 'OPTIMAL' | 'DEGRADED' | 'CRITICAL';
+  risk_trend_daily: RiskTrendPoint[];
+  risk_trend_shift: RiskTrendComparison | null;
+  provenance: AnalyticsProvenance | null;
 }
 
 export interface ZoneTopology {
@@ -204,7 +244,12 @@ export interface ZoneTopology {
   zone_name: string;
   zone_type: string;
   polygon_points: [number, number][];
+  // Same polygon, normalized to a shared 0-1 plane — render from this,
+  // not polygon_points (which is in an arbitrary zone-authoring plane
+  // with no declared physical scale). See ai/spatial/coordinate_transform.py.
+  normalized_polygon_points: [number, number][];
   risk_multiplier: number;
+  is_restricted: boolean;
 }
 
 export interface CameraTopology {
@@ -212,7 +257,30 @@ export interface CameraTopology {
   camera_code: string;
   camera_name: string;
   position_xyz: [number, number, number];
+  // Normalized against the warehouse's own declared width/length —
+  // render from this, not position_xyz directly against dimensions_meters.
+  normalized_position: [number, number];
+  is_positioned: boolean;
+  orientation_degrees: number | null;
+  fov_degrees: number;
+  coverage_range_m: number;
   coverage_zones: string[];
+  is_calibrated: boolean;
+  status: string;
+}
+
+export interface EntityTopology {
+  track_id: number;
+  video_id: string;
+  camera_id: string | null;
+  class_name: string;
+  normalized_position: [number, number];
+  zone_id: string | null;
+  world_position: [number, number] | null;
+  world_position_quality: string | null;
+  confidence: number;
+  last_seen_frame: number;
+  last_seen_timestamp_seconds: number;
 }
 
 export interface DigitalTwinTopology {
@@ -221,7 +289,72 @@ export interface DigitalTwinTopology {
   dimensions_meters: [number, number, number];
   zones: ZoneTopology[];
   cameras: CameraTopology[];
+  entities: EntityTopology[];
   active_entity_count: number;
+  is_live_entity_count: boolean;
+}
+
+export interface CameraRecord {
+  id: string;
+  warehouse_id: string;
+  zone_id: string | null;
+  name: string;
+  camera_code: string;
+  rtsp_url: string | null;
+  fps: number;
+  resolution: string;
+  status: string;
+  location_x: number;
+  location_y: number;
+  location_z: number;
+  is_positioned: boolean;
+  orientation_degrees: number | null;
+  fov_degrees: number;
+  coverage_range_m: number;
+  is_calibrated: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CameraCreatePayload {
+  warehouse_id: string;
+  name: string;
+  camera_code: string;
+  zone_id?: string | null;
+  rtsp_url?: string | null;
+  fps?: number;
+  resolution?: string;
+  status?: string;
+}
+
+export interface CameraUpdatePayload {
+  name?: string;
+  zone_id?: string | null;
+  rtsp_url?: string | null;
+  fps?: number;
+  resolution?: string;
+  status?: string;
+  location_x?: number;
+  location_y?: number;
+  location_z?: number;
+  orientation_degrees?: number;
+  fov_degrees?: number;
+  coverage_range_m?: number;
+}
+
+export interface CalibrationPointPair {
+  video_point: [number, number];
+  world_point: [number, number];
+}
+
+export interface CalibrationRecord {
+  camera_id: string;
+  source_points: [number, number][];
+  world_points: [number, number][];
+  homography_matrix: number[][] | null;
+  reprojection_error: number | null;
+  is_active: boolean;
+  calibrated_at: string;
 }
 
 export interface CitationReference {
@@ -232,12 +365,41 @@ export interface CitationReference {
   snippet: string;
 }
 
+export interface ComparisonMetric {
+  label: string;
+  period_a_label: string;
+  period_b_label: string;
+  period_a_value: number;
+  period_b_value: number;
+  absolute_change: number;
+  percent_change: number | null;
+  direction: 'INCREASED' | 'DECREASED' | 'STABLE';
+}
+
+export interface WhatChangedSummary {
+  improved: string[];
+  worsened: string[];
+  new_items: string[];
+  persistent: string[];
+  most_significant_change: string | null;
+}
+
 export interface AssistantQueryResponse {
   answer: string;
   grounded_citations: CitationReference[];
   is_grounded: boolean;
   confidence: number;
   suggested_followups: string[];
+  // Present only for comparative/temporal questions ("compare today vs
+  // yesterday", "what changed this shift?") — absent for every other query.
+  period_a_label?: string | null;
+  period_b_label?: string | null;
+  comparison?: ComparisonMetric[] | null;
+  what_changed?: WhatChangedSummary | null;
+  why_it_matters?: string | null;
+  recommended_action?: string | null;
+  data_available?: boolean;
+  llm_provider_used?: string | null;
 }
 
 export interface BehaviourDNAItem {

@@ -12,28 +12,28 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ level, size = 'sm' }) 
   const getStyle = () => {
     switch (norm) {
       case 'CRITICAL':
-        return 'bg-red-500/20 text-red-400 border-red-500/40 glow-critical';
+        return 'bg-[rgba(185,28,28,0.1)] text-[#b91c1c] border-[rgba(185,28,28,0.3)] glow-critical';
       case 'HIGH':
-        return 'bg-orange-500/20 text-orange-400 border-orange-500/40 glow-high';
+        return 'bg-[rgba(154,52,18,0.1)] text-[#9a3412] border-[rgba(154,52,18,0.3)] glow-high';
       case 'MEDIUM':
-        return 'bg-amber-500/20 text-amber-400 border-amber-500/40 glow-medium';
+        return 'bg-[rgba(146,64,14,0.1)] text-[#92400e] border-[rgba(146,64,14,0.3)] glow-medium';
       case 'LOW':
-        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 glow-low';
+        return 'bg-[rgba(21,128,61,0.1)] text-[#15803d] border-[rgba(21,128,61,0.3)] glow-low';
       case 'OPEN':
       case 'DETECTED':
-        return 'bg-sky-500/20 text-sky-300 border-sky-500/40';
+        return 'bg-[rgba(47,82,214,0.08)] text-[#2F52D6] border-[rgba(47,82,214,0.25)]';
       case 'ACKNOWLEDGED':
       case 'CONFIRMED':
       case 'RESOLVED':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/40';
+        return 'bg-[#F1F5F9] text-[#18243A] border-[#E9EDF2]';
       case 'UNDER_REVIEW':
       case 'ALERTED':
       case 'REJECTED':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/40';
+        return 'bg-[rgba(47,82,214,0.08)] text-[#2F52D6] border-[rgba(47,82,214,0.25)]';
       case 'ACTION_TAKEN':
-        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
+        return 'bg-[rgba(21,128,61,0.1)] text-[#15803d] border-[rgba(21,128,61,0.3)]';
       default:
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/40';
+        return 'bg-[#F1F5F9] text-[#6F7F98] border-[#E9EDF2]';
     }
   };
 
@@ -41,7 +41,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ level, size = 'sm' }) 
 
   return (
     <span
-      className={`inline-flex items-center font-mono font-bold rounded-md border ${pad} ${getStyle()}`}
+      className={`inline-flex items-center font-semibold tracking-wide rounded-full border ${pad} ${getStyle()}`}
     >
       {norm}
     </span>

@@ -201,3 +201,138 @@ def test_b11_stepping_on_carton():
     assert len(result.active_behaviours) == 1
     assert result.active_behaviours[0].behaviour_type == BehaviourType.B11_STEPPING_ON_CARTON
     assert result.active_behaviours[0].severity == BehaviourSeverity.CRITICAL
+
+
+def test_b06_unstable_stack_severe_overhang():
+    """Verify B06 fires (instead of B05) when the top box is mostly unsupported."""
+    engine = BehaviourEngine()
+    bottom = TrackedObject(
+        track_id=30, class_name="carton", class_id=1, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[100.0, 300.0, 200.0, 400.0], centroid_xy=(150.0, 350.0),
+        width_px=100.0, height_px=100.0, area_px=10000.0,
+        velocity_xy=(0.0, 0.0), speed_px_per_sec=0.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    top = TrackedObject(
+        track_id=31, class_name="carton", class_id=1, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[175.0, 190.0, 275.0, 290.0], centroid_xy=(225.0, 240.0),
+        width_px=100.0, height_px=100.0, area_px=10000.0,
+        velocity_xy=(0.0, 0.0), speed_px_per_sec=0.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    frame_tracks = FrameTracks(frame_index=10, timestamp_seconds=0.33, active_tracks=[bottom, top], lost_tracks=[], removed_tracks=[])
+    frame_interactions = FrameInteractions(frame_index=10, timestamp_seconds=0.33, interactions=[])
+
+    result = engine.evaluate_frame(frame_tracks, frame_interactions, {})
+    unstable = [b for b in result.active_behaviours if b.behaviour_type == BehaviourType.B06_UNSTABLE_STACK]
+    assert len(unstable) == 1
+    assert unstable[0].severity == BehaviourSeverity.CRITICAL
+
+
+def test_b06_unstable_stack_tall_single_stack():
+    """Verify B06 fires from a single 'stack' track's own height:width aspect ratio."""
+    engine = BehaviourEngine()
+    stack = TrackedObject(
+        track_id=40, class_name="stack", class_id=8, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[100.0, 50.0, 150.0, 350.0], centroid_xy=(125.0, 200.0),
+        width_px=50.0, height_px=300.0, area_px=15000.0,
+        velocity_xy=(0.0, 0.0), speed_px_per_sec=0.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    frame_tracks = FrameTracks(frame_index=10, timestamp_seconds=0.33, active_tracks=[stack], lost_tracks=[], removed_tracks=[])
+    frame_interactions = FrameInteractions(frame_index=10, timestamp_seconds=0.33, interactions=[])
+
+    result = engine.evaluate_frame(frame_tracks, frame_interactions, {})
+    assert any(b.behaviour_type == BehaviourType.B06_UNSTABLE_STACK for b in result.active_behaviours)
+
+
+def test_b09_pallet_misalignment():
+    """Verify B09 when a load rests on a pallet with under 60% horizontal support."""
+    engine = BehaviourEngine()
+    pallet = TrackedObject(
+        track_id=50, class_name="pallet", class_id=2, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[100.0, 400.0, 300.0, 450.0], centroid_xy=(200.0, 425.0),
+        width_px=200.0, height_px=50.0, area_px=10000.0,
+        velocity_xy=(0.0, 0.0), speed_px_per_sec=0.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    load = TrackedObject(
+        track_id=51, class_name="carton", class_id=1, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[250.0, 300.0, 400.0, 400.0], centroid_xy=(325.0, 350.0),
+        width_px=150.0, height_px=100.0, area_px=15000.0,
+        velocity_xy=(0.0, 0.0), speed_px_per_sec=0.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    frame_tracks = FrameTracks(frame_index=10, timestamp_seconds=0.33, active_tracks=[pallet, load], lost_tracks=[], removed_tracks=[])
+    frame_interactions = FrameInteractions(frame_index=10, timestamp_seconds=0.33, interactions=[])
+
+    result = engine.evaluate_frame(frame_tracks, frame_interactions, {})
+    assert any(b.behaviour_type == BehaviourType.B09_PALLET_MISALIGNMENT for b in result.active_behaviours)
+
+
+def test_b17_overloading_pallet():
+    """Verify B17 when 4+ separate loads rest on one pallet footprint."""
+    engine = BehaviourEngine()
+    pallet = TrackedObject(
+        track_id=60, class_name="pallet", class_id=2, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[100.0, 400.0, 400.0, 450.0], centroid_xy=(250.0, 425.0),
+        width_px=300.0, height_px=50.0, area_px=15000.0,
+        velocity_xy=(0.0, 0.0), speed_px_per_sec=0.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    loads = []
+    for i in range(4):
+        x1 = 110.0 + i * 70.0
+        loads.append(
+            TrackedObject(
+                track_id=61 + i, class_name="carton", class_id=1, confidence=0.9, state=TrackState.CONFIRMED,
+                bbox_xyxy=[x1, 340.0, x1 + 60.0, 400.0], centroid_xy=(x1 + 30.0, 370.0),
+                width_px=60.0, height_px=60.0, area_px=3600.0,
+                velocity_xy=(0.0, 0.0), speed_px_per_sec=0.0, age_frames=10, hits=10, time_since_update=0,
+            )
+        )
+    frame_tracks = FrameTracks(frame_index=10, timestamp_seconds=0.33, active_tracks=[pallet, *loads], lost_tracks=[], removed_tracks=[])
+    frame_interactions = FrameInteractions(frame_index=10, timestamp_seconds=0.33, interactions=[])
+
+    result = engine.evaluate_frame(frame_tracks, frame_interactions, {})
+    assert any(b.behaviour_type == BehaviourType.B17_OVERLOADING_PALLET for b in result.active_behaviours)
+
+
+def test_b20_collision_risk_converging_forklift():
+    """Verify B20 when a forklift and person are close and closing fast."""
+    engine = BehaviourEngine()
+    forklift = TrackedObject(
+        track_id=70, class_name="forklift", class_id=4, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[100.0, 100.0, 200.0, 200.0], centroid_xy=(150.0, 150.0),
+        width_px=100.0, height_px=100.0, area_px=10000.0,
+        velocity_xy=(90.0, 0.0), speed_px_per_sec=90.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    person = TrackedObject(
+        track_id=71, class_name="person", class_id=0, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[250.0, 100.0, 300.0, 250.0], centroid_xy=(275.0, 150.0),
+        width_px=50.0, height_px=150.0, area_px=7500.0,
+        velocity_xy=(-20.0, 0.0), speed_px_per_sec=20.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    frame_tracks = FrameTracks(frame_index=10, timestamp_seconds=0.33, active_tracks=[forklift, person], lost_tracks=[], removed_tracks=[])
+    frame_interactions = FrameInteractions(frame_index=10, timestamp_seconds=0.33, interactions=[])
+
+    result = engine.evaluate_frame(frame_tracks, frame_interactions, {})
+    collisions = [b for b in result.active_behaviours if b.behaviour_type == BehaviourType.B20_COLLISION_RISK]
+    assert len(collisions) == 1
+    assert collisions[0].severity == BehaviourSeverity.CRITICAL
+
+
+def test_b20_no_collision_risk_when_diverging():
+    """Verify B20 does not fire when two movers are moving apart, even if close."""
+    engine = BehaviourEngine()
+    forklift = TrackedObject(
+        track_id=80, class_name="forklift", class_id=4, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[100.0, 100.0, 200.0, 200.0], centroid_xy=(150.0, 150.0),
+        width_px=100.0, height_px=100.0, area_px=10000.0,
+        velocity_xy=(-40.0, 0.0), speed_px_per_sec=40.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    person = TrackedObject(
+        track_id=81, class_name="person", class_id=0, confidence=0.9, state=TrackState.CONFIRMED,
+        bbox_xyxy=[250.0, 100.0, 300.0, 250.0], centroid_xy=(275.0, 150.0),
+        width_px=50.0, height_px=150.0, area_px=7500.0,
+        velocity_xy=(5.0, 0.0), speed_px_per_sec=5.0, age_frames=10, hits=10, time_since_update=0,
+    )
+    frame_tracks = FrameTracks(frame_index=10, timestamp_seconds=0.33, active_tracks=[forklift, person], lost_tracks=[], removed_tracks=[])
+    frame_interactions = FrameInteractions(frame_index=10, timestamp_seconds=0.33, interactions=[])
+
+    result = engine.evaluate_frame(frame_tracks, frame_interactions, {})
+    assert not any(b.behaviour_type == BehaviourType.B20_COLLISION_RISK for b in result.active_behaviours)

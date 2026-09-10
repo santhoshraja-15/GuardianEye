@@ -51,6 +51,35 @@ class SpatialService:
         return zone
 
     @staticmethod
+    def update_zone(db: Session, zone_id: str, zone_in: ZoneUpdate) -> Zone:
+        zone = SpatialService.get_zone_by_id(db, zone_id)
+        if zone_in.polygon_coordinates is not None:
+            try:
+                coords = json.loads(zone_in.polygon_coordinates)
+                if not isinstance(coords, list) or len(coords) < 3:
+                    raise ValueError("Polygon must contain at least 3 coordinate pairs.")
+            except Exception as e:
+                raise ValidationException(f"Invalid polygon_coordinates JSON: {e}")
+            zone.polygon_coordinates = zone_in.polygon_coordinates
+        if zone_in.name is not None:
+            zone.name = zone_in.name
+        if zone_in.zone_type is not None:
+            zone.zone_type = zone_in.zone_type.upper()
+        if zone_in.risk_weight is not None:
+            zone.risk_weight = zone_in.risk_weight
+        if zone_in.is_restricted is not None:
+            zone.is_restricted = zone_in.is_restricted
+        db.commit()
+        db.refresh(zone)
+        return zone
+
+    @staticmethod
+    def delete_zone(db: Session, zone_id: str) -> None:
+        zone = SpatialService.get_zone_by_id(db, zone_id)
+        db.delete(zone)
+        db.commit()
+
+    @staticmethod
     def get_zone_definitions(db: Session, warehouse_id: Optional[str] = None) -> List[ZoneDefinition]:
         zones = SpatialService.list_zones(db, warehouse_id=warehouse_id)
         definitions = []

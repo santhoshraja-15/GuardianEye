@@ -8,6 +8,7 @@ from backend.app.database.session import Base
 
 if TYPE_CHECKING:
     from backend.app.models.video import Video
+    from backend.app.models.calibration import Calibration
 
 
 class Warehouse(Base):
@@ -54,6 +55,22 @@ class Camera(Base):
     location_x: Mapped[float] = mapped_column(Float, default=0.0)
     location_y: Mapped[float] = mapped_column(Float, default=0.0)
     location_z: Mapped[float] = mapped_column(Float, default=5.0)  # Mounting height in meters
+    # location_x/y default to 0.0 (an existing NOT NULL column — can't be
+    # relaxed to nullable without a real migration, see schema_sync.py's
+    # additive-only limits) which used to be silently treated as "unset"
+    # via a truthy-check fallback (`location_x or 10.0`) that clobbered a
+    # deliberate (0, 0) position and, worse, collapsed every never-
+    # positioned camera onto one identical fake point. is_positioned is
+    # the honest, explicit flag for "has an admin actually placed this
+    # camera" — 0.0 is then just a real coordinate like any other.
+    is_positioned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # 2D top-down orientation (degrees, 0=+X axis, clockwise) and field of
+    # view (degrees) for a simple coverage-cone in the Digital Twin. Not a
+    # full 3D pan/tilt/roll model — the twin itself is a 2D floor plan, so
+    # a full 3D lens model would be precision the rendering can't use.
+    orientation_degrees: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    fov_degrees: Mapped[float] = mapped_column(Float, default=90.0)
+    coverage_range_m: Mapped[float] = mapped_column(Float, default=15.0)
     fps: Mapped[int] = mapped_column(Integer, default=30)
     resolution: Mapped[str] = mapped_column(String(20), default="1920x1080")
     status: Mapped[str] = mapped_column(String(20), default="ONLINE")  # ONLINE, OFFLINE, DEGRADED
@@ -61,3 +78,6 @@ class Camera(Base):
     warehouse: Mapped[Warehouse] = relationship("Warehouse", back_populates="cameras")
     zone: Mapped[Optional[Zone]] = relationship("Zone", back_populates="cameras")
     videos: Mapped[List["Video"]] = relationship("Video", back_populates="camera")
+    calibration: Mapped[Optional["Calibration"]] = relationship(
+        "Calibration", back_populates="camera", uselist=False, cascade="all, delete-orphan"
+    )

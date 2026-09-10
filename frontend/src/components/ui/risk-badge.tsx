@@ -37,11 +37,11 @@ export function RiskBadge({ level, score, label, compact = false, className, lef
       }}
     >
       {leftIcon ?? <Icon size={compact ? 12 : 14} />}
-      <span className="font-mono uppercase tracking-[0.12em]">
+      <span className="uppercase tracking-[0.12em]">
         {label ?? designTokens.semantic[level.toLowerCase() as keyof typeof designTokens.semantic].label}
       </span>
       {typeof score === 'number' && (
-        <span className="font-mono text-[10px] opacity-80">{score}</span>
+        <span className="text-[10px] opacity-80">{score}</span>
       )}
     </span>
   );

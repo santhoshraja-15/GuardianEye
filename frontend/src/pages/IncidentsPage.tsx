@@ -87,8 +87,8 @@ export const IncidentsPage: React.FC = () => {
     <div className="space-y-6 pb-12">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">Incident Board</h1>
-          <p className="text-xs text-gray-400">
+          <h1 className="text-xl font-bold text-[#18243A] tracking-tight">Incident Board</h1>
+          <p className="text-xs text-[#6F7F98]">
             Using the backend-supported incident lifecycle and audit trail only.
           </p>
         </div>
@@ -96,26 +96,26 @@ export const IncidentsPage: React.FC = () => {
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 glass-panel rounded-xl p-4">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#9DAFC5] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter by code, title or summary"
-            className="w-full bg-[#111827] border border-white/10 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+            className="w-full bg-white border border-[#E9EDF2] rounded-lg pl-9 pr-4 py-2 text-xs text-[#18243A] placeholder-[#9DAFC5] focus:outline-none focus:border-[#5D87FF]/50"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <span className="text-xs text-gray-400 font-mono">Severity:</span>
+          <span className="text-xs text-[#6F7F98]">Severity:</span>
           {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((sev) => (
             <button
               key={sev}
               onClick={() => setFilterSeverity(sev)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 filterSeverity === sev
-                  ? 'bg-blue-600/30 text-blue-300 border border-blue-500/50'
-                  : 'bg-white/5 text-gray-400 border border-white/5 hover:text-white'
+                  ? 'bg-[#5D87FF]/20 text-[#2F52D6] border border-[#5D87FF]/50'
+                  : 'bg-[#F1F5F9] text-[#6F7F98] border border-[#E9EDF2] hover:text-[#18243A]'
               }`}
             >
               {sev}
@@ -124,10 +124,10 @@ export const IncidentsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="glass-panel rounded-xl overflow-hidden border border-white/10">
+      <div className="glass-panel rounded-xl overflow-hidden border border-[#E9EDF2]">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-black/60 border-b border-white/10 text-gray-400 font-mono uppercase tracking-wider text-[11px]">
+            <thead className="bg-[#F8FAFC] border-b border-[#E9EDF2] text-[#6F7F98] uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="px-6 py-3.5">Incident Code</th>
                 <th className="px-6 py-3.5">Severity</th>
@@ -138,24 +138,24 @@ export const IncidentsPage: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 font-mono">
+            <tbody className="divide-y divide-[#E9EDF2]">
               {paged.map((inc) => (
-                <tr key={inc.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-6 py-4 font-bold text-blue-400">{inc.incident_code}</td>
+                <tr key={inc.id} className="hover:bg-[#F8FAFC] transition-colors">
+                  <td className="px-6 py-4 font-bold text-[#2F52D6]">{inc.incident_code}</td>
                   <td className="px-6 py-4">
                     <StatusBadge level={inc.severity} />
                   </td>
                   <td className="px-6 py-4 font-sans max-w-sm">
-                    <div className="font-semibold text-white">{inc.title}</div>
-                    <div className="text-gray-400 text-[11px] truncate mt-0.5">{inc.summary}</div>
+                    <div className="font-semibold text-[#18243A]">{inc.title}</div>
+                    <div className="text-[#6F7F98] text-[11px] truncate mt-0.5">{inc.summary}</div>
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge level={inc.status} />
                   </td>
-                  <td className="px-6 py-4 text-gray-300 font-sans">
-                    {inc.assigned_to || <span className="text-gray-500 italic">Unassigned</span>}
+                  <td className="px-6 py-4 text-[#334155] font-sans">
+                    {inc.assigned_to || <span className="text-[#9DAFC5] italic">Unassigned</span>}
                   </td>
-                  <td className="px-6 py-4 text-gray-400 text-[11px]">
+                  <td className="px-6 py-4 text-[#6F7F98] text-[11px]">
                     {new Date(inc.created_at).toLocaleString([], {
                       month: 'short',
                       day: 'numeric',
@@ -166,7 +166,7 @@ export const IncidentsPage: React.FC = () => {
                   <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => setSelectedIncident(inc)}
-                      className="px-3 py-1.5 rounded bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/40 transition-colors"
+                      className="px-3 py-1.5 rounded bg-[#5D87FF]/15 text-[#2F52D6] border border-[#5D87FF]/30 hover:bg-[#5D87FF]/30 transition-colors"
                     >
                       Manage Case
                     </button>
@@ -178,7 +178,7 @@ export const IncidentsPage: React.FC = () => {
         </div>
 
         {filtered.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10 px-6 py-3 text-xs text-gray-400">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#E9EDF2] px-6 py-3 text-xs text-[#6F7F98]">
             <span>
               Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length} incidents
             </span>
@@ -188,11 +188,11 @@ export const IncidentsPage: React.FC = () => {
                 aria-label="Previous page"
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 disabled={safePage <= 1}
-                className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 font-mono text-[11px] text-gray-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center gap-1 rounded-lg border border-[#E9EDF2] bg-[#F1F5F9] px-2.5 py-1.5 text-[11px] text-[#334155] hover:text-[#18243A] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-3.5 w-3.5" /> Prev
               </button>
-              <span className="font-mono text-[11px] text-gray-500">
+              <span className="text-[11px] text-[#9DAFC5]">
                 Page {safePage} of {pageCount}
               </span>
               <button
@@ -200,7 +200,7 @@ export const IncidentsPage: React.FC = () => {
                 aria-label="Next page"
                 onClick={() => setPage((prev) => Math.min(pageCount, prev + 1))}
                 disabled={safePage >= pageCount}
-                className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 font-mono text-[11px] text-gray-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center gap-1 rounded-lg border border-[#E9EDF2] bg-[#F1F5F9] px-2.5 py-1.5 text-[11px] text-[#334155] hover:text-[#18243A] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next <ChevronRight className="h-3.5 w-3.5" />
               </button>
@@ -210,53 +210,53 @@ export const IncidentsPage: React.FC = () => {
       </div>
 
       {selectedIncident && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#18243A]/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
             role="dialog"
             aria-modal="true"
             aria-label={`Manage case ${selectedIncident.incident_code}`}
-            className="bg-[#111827] border border-white/10 rounded-2xl w-full max-w-2xl p-6 space-y-5"
+            className="bg-white border border-[#E9EDF2] rounded-2xl w-full max-w-2xl p-6 space-y-5"
           >
-            <div className="flex items-start justify-between border-b border-white/10 pb-4">
+            <div className="flex items-start justify-between border-b border-[#E9EDF2] pb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-blue-400 font-bold">{selectedIncident.incident_code}</span>
+                  <span className="text-xs text-[#2F52D6] font-bold">{selectedIncident.incident_code}</span>
                   <StatusBadge level={selectedIncident.severity} />
                 </div>
-                <h3 className="text-base font-bold text-white mt-1">{selectedIncident.title}</h3>
+                <h3 className="text-base font-bold text-[#18243A] mt-1">{selectedIncident.title}</h3>
               </div>
-              <button onClick={() => setSelectedIncident(null)} className="p-1 rounded text-gray-400 hover:text-white">
+              <button onClick={() => setSelectedIncident(null)} className="p-1 rounded text-[#6F7F98] hover:text-[#18243A]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-[11px] text-gray-300 font-sans">
-              <div className="rounded-lg bg-black/30 border border-white/5 p-3">
-                <div className="text-gray-400 uppercase tracking-[0.12em] mb-1">Current status</div>
+            <div className="grid grid-cols-2 gap-3 text-[11px] text-[#334155] font-sans">
+              <div className="rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] p-3">
+                <div className="text-[#6F7F98] uppercase tracking-[0.12em] mb-1">Current status</div>
                 <StatusBadge level={selectedIncident.status} />
               </div>
-              <div className="rounded-lg bg-black/30 border border-white/5 p-3">
-                <div className="text-gray-400 uppercase tracking-[0.12em] mb-1">Camera</div>
-                <div className="text-white">{selectedIncident.camera_id ?? 'Not specified'}</div>
+              <div className="rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] p-3">
+                <div className="text-[#6F7F98] uppercase tracking-[0.12em] mb-1">Camera</div>
+                <div className="text-[#18243A]">{selectedIncident.camera_id ?? 'Not specified'}</div>
               </div>
-              <div className="rounded-lg bg-black/30 border border-white/5 p-3">
-                <div className="text-gray-400 uppercase tracking-[0.12em] mb-1">Zone</div>
-                <div className="text-white">{selectedIncident.zone_id ?? 'Not specified'}</div>
+              <div className="rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] p-3">
+                <div className="text-[#6F7F98] uppercase tracking-[0.12em] mb-1">Zone</div>
+                <div className="text-[#18243A]">{selectedIncident.zone_id ?? 'Not specified'}</div>
               </div>
-              <div className="rounded-lg bg-black/30 border border-white/5 p-3">
-                <div className="text-gray-400 uppercase tracking-[0.12em] mb-1">Timestamp</div>
-                <div className="text-white">{new Date(selectedIncident.created_at).toLocaleString()}</div>
+              <div className="rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] p-3">
+                <div className="text-[#6F7F98] uppercase tracking-[0.12em] mb-1">Timestamp</div>
+                <div className="text-[#18243A]">{new Date(selectedIncident.created_at).toLocaleString()}</div>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-lg bg-black/40 border border-white/5 text-xs text-gray-300 space-y-1 font-sans">
-              <div className="text-gray-400 font-mono text-[10px] uppercase">Incident Summary</div>
+            <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] text-xs text-[#334155] space-y-1 font-sans">
+              <div className="text-[#6F7F98] text-[10px] uppercase">Incident Summary</div>
               <div>{selectedIncident.summary}</div>
             </div>
 
             <div className="space-y-3 font-sans">
-              <label className="text-xs font-bold text-gray-300">Update incident status</label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs font-mono">
+              <label className="text-xs font-bold text-[#334155]">Update incident status</label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                 {availableStatuses.map((status) => (
                   <button
                     key={status}
@@ -264,8 +264,8 @@ export const IncidentsPage: React.FC = () => {
                     onClick={() => setTransitionStatus(status)}
                     className={`py-2 px-3 rounded-lg border font-semibold ${
                       transitionStatus === status
-                        ? 'bg-blue-600/30 text-blue-300 border-blue-500'
-                        : 'bg-black/30 border-white/5 text-gray-400 hover:text-white'
+                        ? 'bg-[#5D87FF]/20 text-[#2F52D6] border-[#5D87FF]'
+                        : 'bg-[#F8FAFC] border-[#E9EDF2] text-[#6F7F98] hover:text-[#18243A]'
                     }`}
                   >
                     {status}
@@ -274,26 +274,26 @@ export const IncidentsPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="incident-audit-reason" className="text-xs text-gray-400">Audit reason</label>
+                <label htmlFor="incident-audit-reason" className="text-xs text-[#6F7F98]">Audit reason</label>
                 <textarea
                   id="incident-audit-reason"
                   value={transitionReason}
                   onChange={(e) => setTransitionReason(e.target.value)}
                   placeholder="Describe the update reason for the incident record..."
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 mt-1"
+                  className="w-full bg-[#F8FAFC] border border-[#E9EDF2] rounded-xl p-3 text-xs text-[#18243A] placeholder-[#9DAFC5] focus:outline-none focus:border-[#5D87FF]/50 mt-1"
                   rows={3}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
-              <button onClick={() => setSelectedIncident(null)} className="px-4 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-white">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E9EDF2]">
+              <button onClick={() => setSelectedIncident(null)} className="px-4 py-2 rounded-lg text-xs font-medium text-[#6F7F98] hover:text-[#18243A]">
                 Cancel
               </button>
               <button
                 onClick={handleUpdateStatus}
                 disabled={!transitionReason.trim() || !transitionStatus}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-500 disabled:opacity-40 transition-colors"
+                className="px-4 py-2 rounded-lg bg-[#5D87FF] text-[#18243A] text-xs font-semibold hover:bg-[#3F6AE0] disabled:opacity-40 transition-colors"
               >
                 Save status update
               </button>

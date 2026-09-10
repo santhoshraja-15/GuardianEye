@@ -5,6 +5,7 @@ import {
   Camera,
   ChevronLeft,
   ChevronRight,
+  Crosshair,
   Dna,
   FileCheck,
   LayoutDashboard,
@@ -47,16 +48,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { to: '/evidence', label: 'Evidence Vault', icon: FileCheck },
     { to: '/prevention', label: 'Prevention Studio', icon: Sliders },
     { to: '/digital-twin', label: 'Digital Twin', icon: MapPin },
+    { to: '/calibration', label: 'Camera Calibration', icon: Crosshair },
     { to: '/dna', label: 'Behaviour DNA', icon: Dna },
     { to: '/human-review', label: 'Human Review', icon: Shield },
   ];
-
 
   return (
     <>
       {mobileOpen && (
         <div
-          className="ge-mobile-overlay fixed inset-0 z-30 bg-black/70 md:hidden"
+          className="ge-mobile-overlay fixed inset-0 z-30 bg-[#18243A]/35 md:hidden"
           aria-hidden="true"
           onClick={onCloseMobile}
         />
@@ -64,115 +65,115 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside
         className={`w-64 ${collapsed ? 'md:w-20' : 'md:w-64'} ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 bg-[#0B0F17] border-r border-white/10 flex flex-col h-screen fixed left-0 top-0 z-40 select-none transition-all duration-200`}
+        } md:translate-x-0 bg-white border-r border-[#E9EDF2] flex flex-col h-screen fixed left-0 top-0 z-40 select-none transition-all duration-200`}
       >
-      <div className="h-16 flex items-center justify-between px-3 border-b border-white/10 gap-3">
-        <div className={`flex items-center gap-3 ${collapsed ? 'md:justify-center md:w-full' : ''}`}>
-          <div className="ge-brand-icon w-9 h-9 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 glow-accent shrink-0">
-            <Shield className="w-5 h-5" />
+        <div className="h-16 flex items-center justify-between px-3 border-b border-[#E9EDF2] gap-3">
+          <div className={`flex items-center gap-3 ${collapsed ? 'md:justify-center md:w-full' : ''}`}>
+            <div className="w-9 h-9 rounded-xl bg-[#EAF0FF] flex items-center justify-center text-[#2F52D6] shrink-0">
+              <Shield className="w-5 h-5" />
+            </div>
+            {!collapsed && (
+              <div>
+                <div className="font-[family-name:var(--font-signifier)] font-bold text-base leading-none text-[#18243A] flex items-center gap-1">
+                  Guardian<span className="text-[#2F52D6]">Eye</span>
+                </div>
+                <div className="text-[10px] uppercase tracking-[0.14em] text-[#9DAFC5] mt-1">
+                  AI Risk &amp; Intelligence
+                </div>
+              </div>
+            )}
           </div>
+          <button
+            type="button"
+            aria-label="Close navigation"
+            onClick={onCloseMobile}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-[#E9EDF2] bg-white text-[#6F7F98] hover:text-[#18243A] hover:border-[#CBD5E1] transition-all md:hidden"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={onToggleSidebar}
+            className="hidden md:flex h-7 w-7 items-center justify-center rounded-full border border-[#E9EDF2] bg-white text-[#6F7F98] hover:text-[#18243A] hover:border-[#CBD5E1] transition-all"
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
+
+        {!collapsed && (
+          <div className="px-3 py-3 border-b border-[#E9EDF2]">
+            <div className="rounded-2xl border border-[#E9EDF2] bg-[#F1F5F9] px-3 py-2">
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-[#6F7F98]">
+                <MapPin className="w-3.5 h-3.5" />
+                Warehouse
+              </div>
+              <div className="mt-1.5 text-sm font-medium text-[#18243A]">{selectedWarehouseId ?? 'Primary'}</div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {!collapsed && (
-            <div>
-              <div className="ge-brand-text text-sm font-bold tracking-wider text-white flex items-center gap-1.5">
-                GUARDIAN<span className="ge-brand-accent text-blue-400">EYE</span>
-              </div>
-              <div className="ge-brand-sub text-[10px] font-mono text-gray-400 tracking-tight">
-                AI RISK &amp; INTELLIGENCE
-              </div>
+            <div className="px-3 py-1.5 text-[11px] uppercase tracking-wider text-[#9DAFC5]">
+              Command Operations
             </div>
           )}
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                title={collapsed ? link.label : undefined}
+                onClick={onCloseMobile}
+                className={({ isActive }) =>
+                  `flex items-center justify-between px-3 py-2.5 rounded-full text-[13px] font-medium transition-all ${
+                    collapsed ? 'justify-center' : ''
+                  } ${
+                    isActive
+                      ? 'bg-[#5D87FF] text-white'
+                      : 'text-[#6F7F98] hover:text-[#18243A] hover:bg-[#F1F5F9]'
+                  }`
+                }
+              >
+                <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'gap-3'}`}>
+                  <Icon className="w-4 h-4" />
+                  {!collapsed && <span>{link.label}</span>}
+                </div>
+                {!collapsed && link.badge && link.badge > 0 ? (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF0FF] text-[#2F52D6]">
+                    {link.badge}
+                  </span>
+                ) : null}
+              </NavLink>
+            );
+          })}
         </div>
-        <button
-          type="button"
-          aria-label="Close navigation"
-          onClick={onCloseMobile}
-          className="ge-collapse-btn flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:border-white/20 transition-all md:hidden"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={onToggleSidebar}
-          className="ge-collapse-btn hidden md:flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:border-white/20 transition-all"
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
-      </div>
 
-      {!collapsed && (
-        <div className="px-3 py-3 border-b border-white/10">
-          <div className="ge-warehouse-panel rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2">
-            <div className="ge-warehouse-label flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-blue-300">
-              <MapPin className="w-3.5 h-3.5" />
-              Warehouse
-            </div>
-            <div className="ge-warehouse-value mt-2 text-sm font-semibold text-white">{selectedWarehouseId ?? 'Primary'}</div>
-          </div>
+        <div className="p-4 border-t border-[#E9EDF2]">
+          <button
+            onClick={onOpenCopilot}
+            className={`w-full flex items-center justify-center gap-2 rounded-full bg-[#5D87FF] text-white text-xs font-semibold hover:bg-[#3F6AE0] transition-all ${collapsed ? 'px-2 py-2' : 'px-3 py-2.5'}`}
+          >
+            <Sparkles className="w-4 h-4" />
+            {!collapsed && <span>Grounded AI Copilot</span>}
+          </button>
         </div>
-      )}
 
-      <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        {!collapsed && (
-          <div className="ge-nav-section-label px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider text-gray-500">
-            Command Operations
-          </div>
-        )}
-        {navLinks.map((link) => {
-          const Icon = link.icon;
-          return (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              title={collapsed ? link.label : undefined}
-              onClick={onCloseMobile}
-              className={({ isActive }) =>
-                `ge-nav-link flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
-                  collapsed ? 'justify-center' : ''
-                } ${
-                  isActive
-                    ? 'ge-nav-link-active bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/10'
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-                }`
-              }
-            >
-              <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'gap-3'}`}>
-                <Icon className="w-4 h-4" />
-                {!collapsed && <span>{link.label}</span>}
+        <div className={`p-4 border-t border-[#E9EDF2] flex items-center ${collapsed ? 'justify-center' : 'justify-between'} text-[11px] text-[#6F7F98]`}>
+          {!collapsed ? (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#15803d] pulse-live" />
+                <span>Pipeline online</span>
               </div>
-              {!collapsed && link.badge && link.badge > 0 ? (
-                <span className="ge-nav-badge px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse">
-                  {link.badge}
-                </span>
-              ) : null}
-            </NavLink>
-          );
-        })}
-      </div>
-
-      <div className="p-4 border-t border-white/10 bg-white/[0.02]">
-        <button
-          onClick={onOpenCopilot}
-          className={`ge-copilot-btn w-full flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600/30 to-purple-600/30 border border-blue-500/40 text-blue-300 text-xs font-semibold hover:from-blue-600/40 hover:to-purple-600/40 transition-all glow-accent ${collapsed ? 'px-2 py-2' : 'px-3 py-2.5'}`}
-        >
-          <Sparkles className="w-4 h-4 text-purple-400" />
-          {!collapsed && <span>Grounded AI Copilot</span>}
-        </button>
-      </div>
-
-      <div className={`ge-status-bar p-4 border-t border-white/10 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} text-[11px] font-mono text-gray-400`}>
-        {!collapsed ? (
-          <>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 pulse-live" />
-              <span>PIPELINE ONLINE</span>
-            </div>
-            <span className="text-gray-500">v1.0.0</span>
-          </>
-        ) : (
-          <span className="w-2 h-2 rounded-full bg-emerald-400 pulse-live" />
-        )}
-      </div>
+              <span className="text-[#9DAFC5]">v1.0.0</span>
+            </>
+          ) : (
+            <span className="w-2 h-2 rounded-full bg-[#15803d] pulse-live" />
+          )}
+        </div>
       </aside>
     </>
   );

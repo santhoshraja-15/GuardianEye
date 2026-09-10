@@ -7,6 +7,8 @@ from backend.app.models.warehouse import Warehouse, Zone, Camera
 from backend.app.models.product import ProductCategory, Product, Equipment
 from backend.app.models.video import Video, ProcessingJob
 from backend.app.models.tracking import Track, TrackPoint
+from backend.app.models.calibration import Calibration
+from backend.app.models.spatial_event import SpatialEvent
 from backend.app.models.behaviour import Interaction, BehaviourEvent
 from backend.app.models.risk import RiskAssessment, DamagePrediction, PredictiveRisk
 from backend.app.models.incident import Alert, Incident, IncidentHistory
@@ -39,6 +41,8 @@ __all__ = [
     "ProcessingJob",
     "Track",
     "TrackPoint",
+    "Calibration",
+    "SpatialEvent",
     "Interaction",
     "BehaviourEvent",
     "RiskAssessment",

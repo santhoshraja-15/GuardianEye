@@ -65,6 +65,8 @@ data/processed/*
 !data/processed/.gitkeep
 storage/data/*
 !storage/data/.gitkeep
+storage/snapshots/*
+!storage/snapshots/.gitkeep
 
 # AI Models & Large Binaries
 *.pt

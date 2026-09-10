@@ -2,9 +2,10 @@
 Deterministic Mathematical Risk Engine for Warehouse Operations
 Calculates auditable risk scores (0-100) using physical parameters, fragility, and zone risks.
 """
-from ai.behaviour.behaviour_schemas import BehaviourSeverity, BehaviourType, DetectedBehaviour
+from ai.behaviour.behaviour_schemas import BehaviourSeverity, DetectedBehaviour
 from ai.context.context_enricher import EnrichedBehaviourContext
 from ai.risk.risk_schemas import RiskEvaluationResult, RiskFormulaBreakdown, RiskLevel
+from ai.risk.risk_taxonomy import RISK_TAXONOMY, get_profile
 
 
 class DeterministicRiskEngine:
@@ -20,18 +21,10 @@ class DeterministicRiskEngine:
         BehaviourSeverity.CRITICAL: 90.0,
     }
 
-    BEHAVIOUR_BASE_WEIGHTS = {
-        BehaviourType.B01_DROP: 1.2,
-        BehaviourType.B02_DRAG: 1.1,
-        BehaviourType.B03_THROW: 1.35,
-        BehaviourType.B04_ROUGH_HANDLING: 1.0,
-        BehaviourType.B05_IMPROPER_STACKING: 1.05,
-        BehaviourType.B06_UNSTABLE_STACK: 1.15,
-        BehaviourType.B07_INCORRECT_PLACEMENT: 1.1,
-        BehaviourType.B11_STEPPING_ON_CARTON: 1.4,
-        BehaviourType.B13_ROLLING_CARTON: 1.1,
-        BehaviourType.B15_WET_FLOOR_DRAGGING: 1.3,
-    }
+    # Sourced from the centralized taxonomy (ai/risk/risk_taxonomy.py) so
+    # every one of the 20 behaviour types has an explicit, documented
+    # weight — none silently inherit an unexplained 1.0 default.
+    BEHAVIOUR_BASE_WEIGHTS = {bt: profile.risk_weight for bt, profile in RISK_TAXONOMY.items()}
 
     @classmethod
     def evaluate(
@@ -40,9 +33,16 @@ class DeterministicRiskEngine:
         context: EnrichedBehaviourContext,
     ) -> RiskEvaluationResult:
         factors = []
+        profile = get_profile(behaviour.behaviour_type)
         base_score = cls.BASE_SEVERITY_SCORES.get(behaviour.severity, 40.0)
-        type_weight = cls.BEHAVIOUR_BASE_WEIGHTS.get(behaviour.behaviour_type, 1.0)
-        weighted_base = base_score * type_weight
+        weighted_base = base_score * profile.risk_weight
+
+        if behaviour.confidence < profile.confidence_threshold:
+            factors.append(
+                f"Detection confidence ({behaviour.confidence:.2f}) is below the "
+                f"{profile.confidence_threshold:.2f} threshold typically required for this behaviour type — "
+                "treat as lower-certainty until reviewed."
+            )
 
         # 1. Height risk component
         fall_height = behaviour.evidence.fall_height_px
@@ -90,6 +90,11 @@ class DeterministicRiskEngine:
         else:
             risk_level = RiskLevel.LOW
             rec = "INFORMATIONAL: Routine telemetry logged."
+
+        # Layer the behaviour-specific guidance (ai/risk/risk_taxonomy.py)
+        # under the severity-tier action above, rather than a single
+        # generic sentence for every behaviour at a given score band.
+        rec = f"{rec} {profile.recommended_action}"
 
         breakdown = RiskFormulaBreakdown(
             base_severity_score=round(weighted_base, 2),

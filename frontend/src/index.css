@@ -1,82 +1,98 @@
 @import "tailwindcss";
 
 @theme {
-  /* Tailwind's default gray-500 (#6a7282) renders at 3.96:1 against this
-     app's dark surfaces (#0b0f17 / #111827), below the WCAG AA 4.5:1
-     minimum for body text — it's used throughout as the muted/secondary
-     text color (labels, metadata, timestamps). Nudge it just enough to
-     clear 4.5:1 on both surfaces while staying close to the original
-     muted-gray weight, instead of jumping all the way to gray-400.
-     Verified: ~5.4:1 on #0b0f17, ~5.0:1 on #111827. */
-  --color-gray-500: #808998;
+  /* Rounded, geometric UI sans (Plus Jakarta Sans, Tokotype) carries both
+     headings and body copy — Noto Sans is the fallback for any glyph it
+     doesn't cover. Both var names are kept from the earlier serif/sans
+     pairing so no component needs touching to pick up the swap. */
+  --font-signifier: 'Plus Jakarta Sans', 'Noto Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sohne: 'Plus Jakarta Sans', 'Noto Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ─── DARK THEME (default) ─────────────────────────────────────────────── */
+/* ─── THEME — rounded admin blue (AdminMart/Modernize-inspired) ─────────
+   Single light theme. Variable names are kept stable from earlier theme
+   passes so every component and page that already consumes
+   var(--bg-primary) / var(--text-secondary) / etc. repaints correctly
+   without needing a rewrite. ────────────────────────────────────────── */
 @layer base {
   :root {
-    --bg-primary:         #0b0f17;
-    --bg-secondary:       #111827;
-    --bg-card:            rgba(17, 24, 39, 0.75);
-    --border-color:       rgba(255, 255, 255, 0.08);
-    --border-focus:       rgba(59, 130, 246, 0.5);
+    --bg-primary:         #ffffff;   /* Paper White canvas */
+    --bg-secondary:       #F1F5F9;   /* Mist Gray nested surfaces */
+    --bg-card:            #ffffff;
+    --border-color:       #E9EDF2;
+    --border-focus:       rgba(47, 82, 214, 0.35);
 
-    --color-critical:     #ef4444;
-    --color-high:         #f97316;
-    --color-medium:       #f59e0b;
-    --color-low:          #10b981;
-    --color-accent:       #3b82f6;
+    /* Functional severity colors — the one deliberate exception to the
+       accent-blue-only palette (see design-tokens.ts comment): safety
+       severity keeps the standard green→amber→orange→red convention
+       regardless of brand color, because that's what reads instantly. */
+    --color-critical:     #b91c1c;
+    --color-high:         #9a3412;
+    --color-medium:       #92400e;
+    --color-low:          #15803d;
+    --color-accent:       #5D87FF;   /* AdminMart blue — primary brand fill */
+    --color-accent-ink:   #2F52D6;   /* same hue, darkened for text/icons on white */
 
     /* Text */
-    --text-primary:       #f3f4f6;
-    --text-secondary:     #9ca3af;
-    --text-muted:         #6b7280;
+    --text-primary:       #18243A;   /* Ink navy */
+    --text-secondary:     #6F7F98;   /* Slate */
+    --text-muted:         #9DAFC5;   /* Muted blue-gray */
 
     /* Sidebar */
-    --sidebar-bg:         #0b0f17;
-    --sidebar-border:     rgba(255, 255, 255, 0.08);
-    --sidebar-text:       #9ca3af;
-    --sidebar-text-hover: #e5e7eb;
-    --nav-active-bg:      rgba(37, 99, 235, 0.2);
-    --nav-active-text:    #60a5fa;
-    --nav-active-border:  rgba(59, 130, 246, 0.3);
+    --sidebar-bg:         #ffffff;
+    --sidebar-border:     #E9EDF2;
+    --sidebar-text:       #6F7F98;
+    --sidebar-text-hover: #18243A;
+    --nav-active-bg:      #5D87FF;
+    --nav-active-text:    #ffffff;
+    --nav-active-border:  #5D87FF;
 
     /* Header */
-    --header-bg:          rgba(11, 15, 23, 0.9);
-    --header-border:      rgba(255, 255, 255, 0.08);
-    --header-text:        #f3f4f6;
+    --header-bg:          rgba(255, 255, 255, 0.86);
+    --header-border:      #E9EDF2;
+    --header-text:        #18243A;
 
     /* Main layout */
-    --layout-bg:          #0b0f17;
-    --layout-text:        #f3f4f6;
+    --layout-bg:          #ffffff;
+    --layout-text:        #18243A;
 
     /* Cards */
-    --card-bg:            rgba(15, 23, 42, 0.8);
-    --card-border:        rgba(255, 255, 255, 0.08);
-    --card-shadow:        0 4px 20px rgba(0, 0, 0, 0.4);
+    --card-bg:            #ffffff;
+    --card-border:        #E9EDF2;
+    --card-shadow:        none;
+
+    /* Elevated / floating product artifacts (the only elements that
+       get a visible shadow in this system) */
+    --elevated-bg:        #ffffff;
+    --elevated-shadow:    0 0 0 1px rgba(4,23,43,0.05), 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+
+    /* Accent card */
+    --accent-bg:          #EAF0FF;   /* pale blue tint */
+    --accent-text:        #2F52D6;   /* AdminMart blue, darkened for contrast */
 
     /* Input */
-    --input-bg:           #111827;
-    --input-border:       rgba(255, 255, 255, 0.1);
-    --input-text:         #f3f4f6;
-    --input-placeholder:  #6b7280;
+    --input-bg:           #ffffff;
+    --input-border:       #E9EDF2;
+    --input-text:         #18243A;
+    --input-placeholder:  #9DAFC5;
 
     /* Scrollbar */
-    --scrollbar-track:    #0b0f17;
-    --scrollbar-thumb:    #1f2937;
-    --scrollbar-thumb-hover: #374151;
+    --scrollbar-track:    #F8FAFC;
+    --scrollbar-thumb:    #e2e2e4;
+    --scrollbar-thumb-hover: #c7c7ca;
 
-    /* Chart */
-    --chart-grid:         rgba(255, 255, 255, 0.06);
-    --chart-text:         #6b7280;
-    --chart-blue:         #3b82f6;
-    --chart-cyan:         #06b6d4;
+    /* Chart — the two AdminMart brand blues used for ordinal series */
+    --chart-grid:         #E9EDF2;
+    --chart-text:         #9DAFC5;
+    --chart-blue:         #5D87FF;
+    --chart-cyan:         #49BEFF;
 
     /* Overlay */
-    --overlay-bg:         rgba(2, 6, 23, 0.7);
+    --overlay-bg:         rgba(23, 25, 28, 0.45);
 
     /* Command palette */
-    --palette-bg:         #0f172a;
-    --palette-input-bg:   #111827;
+    --palette-bg:         #ffffff;
+    --palette-input-bg:   #F1F5F9;
   }
 
   body {
@@ -84,386 +100,164 @@
     padding: 0;
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-sohne);
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
-    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1, h2 {
+    font-family: var(--font-signifier);
+    font-weight: 700;
   }
 }
 
-/* ─── LIGHT THEME OVERRIDES ─────────────────────────────────────────────── */
-[data-theme="light"] {
-  --bg-primary:         #FAFAFA;
-  --bg-secondary:       #FFFFFF;
-  --bg-card:            #FFFFFF;
-  --border-color:       #E9EDF2;
-  --border-focus:       rgba(93, 135, 255, 0.5);
-
-  --color-critical:     #FF8068;
-  --color-high:         #FFAA00;
-  --color-medium:       #48B9F5;
-  --color-low:          #13DDB9;
-  --color-accent:       #5D87FF;
-
-  /* Text */
-  --text-primary:       #18243A;
-  --text-secondary:     #6F7F98;
-  --text-muted:         #9DAFC5;
-
-  /* Sidebar */
-  --sidebar-bg:         #FFFFFF;
-  --sidebar-border:     #E9EDF2;
-  --sidebar-text:       #6F7F98;
-  --sidebar-text-hover: #18243A;
-  --nav-active-bg:      #5D87FF;
-  --nav-active-text:    #FFFFFF;
-  --nav-active-border:  #5D87FF;
-
-  /* Header */
-  --header-bg:          #001851;
-  --header-border:      rgba(255, 255, 255, 0.1);
-  --header-text:        #FFFFFF;
-
-  /* Main layout */
-  --layout-bg:          #FAFAFA;
-  --layout-text:        #18243A;
-
-  /* Cards */
-  --card-bg:            #FFFFFF;
-  --card-border:        #E9EDF2;
-  --card-shadow:        0 4px 20px rgba(0, 0, 0, 0.04);
-
-  /* Input */
-  --input-bg:           #FFFFFF;
-  --input-border:       #E9EDF2;
-  --input-text:         #18243A;
-  --input-placeholder:  #9DAFC5;
-
-  /* Scrollbar */
-  --scrollbar-track:    #F1F5F9;
-  --scrollbar-thumb:    #CBD5E1;
-  --scrollbar-thumb-hover: #94A3B8;
-
-  /* Chart */
-  --chart-grid:         #E5E8ED;
-  --chart-text:         #6F7F98;
-  --chart-blue:         #7599FF;
-  --chart-cyan:         #64C8FF;
-
-  /* Overlay */
-  --overlay-bg:         rgba(0, 24, 81, 0.5);
-
-  /* Command palette */
-  --palette-bg:         #FFFFFF;
-  --palette-input-bg:   #F8FAFC;
-}
-
-/* ─── LIGHT THEME: structural element overrides ─────────────────────────── */
-/* These override hard-coded Tailwind JIT classes on major layout containers */
-
-[data-theme="light"] body {
-  background-color: #FAFAFA;
-  color: #18243A;
-}
-
-/* Layout root wrapper (AppLayout outer div with bg-[#0B0F17]) */
-[data-theme="light"] .ge-layout-root {
-  background-color: #FAFAFA !important;
+/* ─── Legacy utility translation layer ───────────────────────────────────
+   Pages not yet migrated to bespoke markup still carry hardcoded
+   dark-theme Tailwind utilities (bg-[#0B0F17], text-gray-400, border-white/10,
+   ...). Rather than ship those pages visibly broken against the new light
+   canvas, translate the same utility classes unconditionally (this block
+   used to be gated behind [data-theme="light"] when dark mode was a
+   supported alternative — now this light theme is the only one, so it
+   always applies). As each page gets its bespoke pass, its hardcoded
+   classes are replaced directly and these rules simply stop matching
+   there. ─────────────────────────────────────────────────────────────── */
+.ge-layout-root {
+  background-color: #ffffff !important;
   color: #18243A !important;
 }
 
-/* Sidebar */
-[data-theme="light"] aside {
-  background-color: #FFFFFF !important;
+aside {
+  background-color: #ffffff !important;
   border-color: #E9EDF2 !important;
 }
 
-[data-theme="light"] aside .ge-brand-icon {
-  background-color: rgba(93, 135, 255, 0.1) !important;
-  border-color: rgba(93, 135, 255, 0.3) !important;
-  color: #5D87FF !important;
-}
+.ge-mobile-overlay { background-color: rgba(23, 25, 28, 0.35) !important; }
 
-[data-theme="light"] aside .ge-brand-text {
-  color: #18243A !important;
-}
-
-[data-theme="light"] aside .ge-brand-accent {
-  color: #5D87FF !important;
-}
-
-[data-theme="light"] aside .ge-brand-sub {
-  color: #6F7F98 !important;
-}
-
-[data-theme="light"] aside .ge-warehouse-panel {
-  background-color: rgba(93, 135, 255, 0.06) !important;
-  border-color: rgba(93, 135, 255, 0.15) !important;
-}
-
-[data-theme="light"] aside .ge-warehouse-label {
-  color: #5D87FF !important;
-}
-
-[data-theme="light"] aside .ge-warehouse-value {
-  color: #18243A !important;
-}
-
-[data-theme="light"] aside .ge-nav-section-label {
-  color: #9DAFC5 !important;
-}
-
-[data-theme="light"] aside .ge-nav-link {
-  color: #6F7F98 !important;
-}
-
-[data-theme="light"] aside .ge-nav-link:hover {
-  color: #18243A !important;
-  background-color: #F1F5F9 !important;
-}
-
-[data-theme="light"] aside .ge-nav-link-active {
-  background-color: #5D87FF !important;
-  color: #FFFFFF !important;
-  border-color: #5D87FF !important;
-  box-shadow: 0 2px 8px rgba(93, 135, 255, 0.25) !important;
-}
-
-[data-theme="light"] aside .ge-nav-badge {
-  background-color: rgba(255, 128, 104, 0.15) !important;
-  color: #FF8068 !important;
-  border-color: rgba(255, 128, 104, 0.3) !important;
-}
-
-[data-theme="light"] aside .ge-copilot-btn {
-  background: linear-gradient(135deg, rgba(93, 135, 255, 0.15), rgba(147, 51, 234, 0.15)) !important;
-  border-color: rgba(93, 135, 255, 0.3) !important;
-  color: #5D87FF !important;
-}
-
-[data-theme="light"] aside .ge-status-bar {
-  background-color: #F8FAFC !important;
+header {
+  background-color: rgba(255, 255, 255, 0.86) !important;
   border-color: #E9EDF2 !important;
-  color: #6F7F98 !important;
-}
-
-[data-theme="light"] aside .ge-collapse-btn {
-  background-color: #F1F5F9 !important;
-  border-color: #E9EDF2 !important;
-  color: #6F7F98 !important;
-}
-
-[data-theme="light"] aside .ge-collapse-btn:hover {
   color: #18243A !important;
-  border-color: #CBD5E1 !important;
 }
 
-/* Mobile sidebar overlay */
-[data-theme="light"] .ge-mobile-overlay {
-  background-color: rgba(0, 24, 81, 0.3) !important;
-}
+main { background-color: #ffffff; }
 
-/* Header */
-[data-theme="light"] header {
-  background-color: #001851 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #FFFFFF !important;
-}
-
-[data-theme="light"] header .ge-page-label {
-  color: rgba(255, 255, 255, 0.6) !important;
-}
-
-[data-theme="light"] header .ge-page-title {
-  color: #FFFFFF !important;
-}
-
-[data-theme="light"] header .ge-search-btn {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-
-[data-theme="light"] header .ge-time-badge {
-  background-color: rgba(255, 255, 255, 0.06) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-
-[data-theme="light"] header .ge-user-badge {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  color: #FFFFFF !important;
-}
-
-[data-theme="light"] header .ge-alert-btn {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  color: #FFFFFF !important;
-}
-
-[data-theme="light"] header .ge-cmd-btn {
-  background-color: rgba(93, 135, 255, 0.25) !important;
-  border-color: rgba(93, 135, 255, 0.5) !important;
-  color: #FFFFFF !important;
-}
-
-[data-theme="light"] header .ge-copilot-btn {
-  background-color: rgba(93, 135, 255, 0.25) !important;
-  border-color: rgba(93, 135, 255, 0.5) !important;
-  color: #FFFFFF !important;
-}
-
-[data-theme="light"] header .ge-mobile-menu-btn {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  color: #FFFFFF !important;
-}
-
-/* Main content area */
-[data-theme="light"] main {
-  background-color: #FAFAFA;
-}
-
-/* Glass panels — replace glassmorphism with clean white cards in light mode */
-[data-theme="light"] .glass-panel {
-  background: #FFFFFF !important;
+.glass-panel {
+  background: #ffffff !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border: 1px solid #E9EDF2 !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: none !important;
 }
-
-[data-theme="light"] .glass-panel-hover:hover {
-  background: #FFFFFF !important;
+.glass-panel-hover { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.glass-panel-hover:hover {
+  background: #ffffff !important;
   border-color: #CBD5E1 !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 0 0 1px rgba(4,23,43,0.05), 0 8px 24px rgba(0,0,0,0.08) !important;
 }
 
-/* Text colors for common gray utilities inside content areas */
-[data-theme="light"] main .text-white,
-[data-theme="light"] main h1,
-[data-theme="light"] main h2,
-[data-theme="light"] main h3 {
-  color: #18243A;
-}
+main .text-white,
+main h1,
+main h2,
+main h3 { color: #18243A; }
 
-[data-theme="light"] main .text-gray-100 { color: #18243A; }
-[data-theme="light"] main .text-gray-200 { color: #18243A; }
-[data-theme="light"] main .text-gray-300 { color: #374151; }
-[data-theme="light"] main .text-gray-400 { color: #6F7F98; }
-[data-theme="light"] main .text-slate-200 { color: #18243A; }
-[data-theme="light"] main .text-slate-300 { color: #374151; }
+main .text-gray-100 { color: #18243A; }
+main .text-gray-200 { color: #18243A; }
+main .text-gray-300 { color: #334155; }
+main .text-gray-400 { color: #6F7F98; }
+main .text-slate-200 { color: #18243A; }
+main .text-slate-300 { color: #334155; }
+main .text-slate-400 { color: #6F7F98; }
 
-/* Dark background panels inside main → white/light */
-[data-theme="light"] main .bg-\[\#0B0F17\],
-[data-theme="light"] main .bg-\[\#0b0f17\] { background-color: #FFFFFF !important; }
-[data-theme="light"] main .bg-\[\#111827\] { background-color: #F8FAFC !important; }
-[data-theme="light"] main .bg-\[\#0F172A\] { background-color: #FFFFFF !important; }
-[data-theme="light"] main .bg-\[\#1e293b\] { background-color: #F1F5F9 !important; }
-[data-theme="light"] main .bg-black\/30,
-[data-theme="light"] main .bg-black\/40,
-[data-theme="light"] main .bg-black\/60 { background-color: #F1F5F9 !important; }
-[data-theme="light"] main .bg-slate-900\/80 { background-color: #FFFFFF !important; }
-[data-theme="light"] main .bg-white\/\[0\.02\],
-[data-theme="light"] main .bg-white\/5 { background-color: #F8FAFC !important; }
-[data-theme="light"] main .bg-white\/10 { background-color: #F1F5F9 !important; }
+main .bg-\[\#0B0F17\],
+main .bg-\[\#0b0f17\] { background-color: #ffffff !important; }
+main .bg-\[\#111827\] { background-color: #F1F5F9 !important; }
+main .bg-\[\#0F172A\] { background-color: #ffffff !important; }
+main .bg-\[\#1e293b\] { background-color: #F1F5F9 !important; }
+main .bg-black\/20,
+main .bg-black\/25,
+main .bg-black\/30,
+main .bg-black\/40 { background-color: #F1F5F9 !important; }
+main .bg-slate-900\/80 { background-color: #ffffff !important; }
+main .bg-white\/\[0\.02\],
+main .bg-white\/\[0\.03\],
+main .bg-white\/5 { background-color: #f8f8f9 !important; }
+main .bg-white\/10 { background-color: #F1F5F9 !important; }
 
-/* Border colors inside main */
-[data-theme="light"] main .border-white\/5,
-[data-theme="light"] main .border-white\/10,
-[data-theme="light"] main .border-white\/\[0\.08\] { border-color: #E9EDF2 !important; }
-[data-theme="light"] main .border-white\/20 { border-color: #CBD5E1 !important; }
-[data-theme="light"] main .divide-white\/5 > * + *,
-[data-theme="light"] main .divide-white\/10 > * + * { border-color: #E9EDF2 !important; }
+main .border-white\/5,
+main .border-white\/10,
+main .border-white\/\[0\.08\] { border-color: #E9EDF2 !important; }
+main .border-white\/20 { border-color: #CBD5E1 !important; }
+main .border-dashed.border-white\/10 { border-color: #CBD5E1 !important; }
+main .divide-white\/5 > * + *,
+main .divide-white\/10 > * + * { border-color: #E9EDF2 !important; }
 
-/* Input fields */
-[data-theme="light"] main input,
-[data-theme="light"] main textarea,
-[data-theme="light"] main select {
-  background-color: #FFFFFF !important;
+main input,
+main textarea,
+main select {
+  background-color: #ffffff !important;
   border-color: #E9EDF2 !important;
   color: #18243A !important;
 }
+main input::placeholder,
+main textarea::placeholder { color: #9DAFC5 !important; }
 
-[data-theme="light"] main input::placeholder,
-[data-theme="light"] main textarea::placeholder {
-  color: #9DAFC5 !important;
-}
+main .bg-slate-800,
+main .bg-slate-900 { background-color: #f8f8f9 !important; }
+main .hover\:bg-slate-800:hover,
+main .hover\:bg-slate-700:hover { background-color: #F1F5F9 !important; }
+main .hover\:bg-white\/5:hover { background-color: #F1F5F9 !important; }
+main .hover\:border-white\/20:hover { border-color: #CBD5E1 !important; }
 
-/* Slate/dark backgrounds on table rows, list items */
-[data-theme="light"] main .bg-slate-800,
-[data-theme="light"] main .bg-slate-900 { background-color: #F8FAFC !important; }
-[data-theme="light"] main .hover\:bg-slate-800:hover,
-[data-theme="light"] main .hover\:bg-slate-700:hover { background-color: #F1F5F9 !important; }
-[data-theme="light"] main .hover\:bg-white\/5:hover { background-color: #F1F5F9 !important; }
-[data-theme="light"] main .hover\:border-white\/20:hover { border-color: #CBD5E1 !important; }
-
-/* Command palette */
-[data-theme="light"] .ge-command-overlay { background-color: rgba(0, 24, 81, 0.5) !important; }
-[data-theme="light"] .ge-command-panel {
-  background-color: #FFFFFF !important;
+.ge-command-overlay { background-color: rgba(23, 25, 28, 0.45) !important; }
+.ge-command-panel {
+  background-color: #ffffff !important;
   border-color: #E9EDF2 !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 0 0 1px rgba(4,23,43,0.05), 0 20px 60px rgba(0,0,0,0.12) !important;
 }
-[data-theme="light"] .ge-command-input-row {
-  background-color: #F8FAFC !important;
-  border-color: #E9EDF2 !important;
-  color: #18243A !important;
-}
-[data-theme="light"] .ge-command-item {
-  background-color: #F8FAFC !important;
-  border-color: #E9EDF2 !important;
-  color: #18243A !important;
-}
-[data-theme="light"] .ge-command-item:hover {
-  border-color: rgba(93, 135, 255, 0.4) !important;
-  background-color: rgba(93, 135, 255, 0.06) !important;
-}
-
-/* Glow effects — tone down in light mode */
-[data-theme="light"] .glow-critical { box-shadow: 0 0 8px rgba(255, 128, 104, 0.2); }
-[data-theme="light"] .glow-high     { box-shadow: 0 0 8px rgba(255, 170, 0, 0.2); }
-[data-theme="light"] .glow-medium   { box-shadow: 0 0 8px rgba(72, 185, 245, 0.2); }
-[data-theme="light"] .glow-low      { box-shadow: 0 0 8px rgba(19, 221, 185, 0.2); }
-[data-theme="light"] .glow-accent   { box-shadow: 0 0 8px rgba(93, 135, 255, 0.2); }
-
-/* Copilot drawer — targets the fixed inset-y-0 panel with hard-coded dark bg */
-[data-theme="light"] .fixed.inset-y-0.right-0 {
-  background-color: #FFFFFF !important;
-  border-color: #E9EDF2 !important;
-}
-[data-theme="light"] .fixed.inset-y-0.right-0 .bg-\[\#0B0F17\] {
-  background-color: #F8FAFC !important;
-}
-[data-theme="light"] .fixed.inset-y-0.right-0 .bg-\[\#0E131F\] {
-  background-color: #FFFFFF !important;
-}
-[data-theme="light"] .fixed.inset-y-0.right-0 .border-white\/10 {
-  border-color: #E9EDF2 !important;
-}
-[data-theme="light"] .fixed.inset-y-0.right-0 .text-white {
-  color: #18243A !important;
-}
-[data-theme="light"] .fixed.inset-y-0.right-0 .text-gray-400 {
-  color: #6F7F98 !important;
-}
-[data-theme="light"] .fixed.inset-y-0.right-0 .bg-\[\#111827\],
-[data-theme="light"] .fixed.inset-y-0.right-0 .bg-slate-900 {
+.ge-command-input-row {
   background-color: #F1F5F9 !important;
-}
-[data-theme="light"] .fixed.inset-y-0.right-0 input {
-  background-color: #FFFFFF !important;
   border-color: #E9EDF2 !important;
   color: #18243A !important;
 }
-[data-theme="light"] .fixed.inset-y-0.right-0 input::placeholder {
-  color: #9DAFC5 !important;
+.ge-command-item {
+  background-color: #f8f8f9 !important;
+  border-color: #E9EDF2 !important;
+  color: #18243A !important;
+}
+.ge-command-item:hover {
+  border-color: rgba(47, 82, 214, 0.3) !important;
+  background-color: rgba(234, 240, 255, 0.35) !important;
 }
 
-/* ─── Scrollbar styles (themed) ─────────────────────────────────────────── */
+/* Severity glows — subtle, functional (see design-tokens.ts semantic colors) */
+.glow-critical { box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.08); }
+.glow-high     { box-shadow: 0 0 0 3px rgba(154, 52, 18, 0.08); }
+.glow-medium   { box-shadow: 0 0 0 3px rgba(146, 64, 14, 0.08); }
+.glow-low      { box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.08); }
+.glow-accent   { box-shadow: 0 0 0 3px rgba(47, 82, 214, 0.08); }
+
+.fixed.inset-y-0.right-0 {
+  background-color: #ffffff !important;
+  border-color: #E9EDF2 !important;
+}
+.fixed.inset-y-0.right-0 .bg-\[\#0B0F17\] { background-color: #f8f8f9 !important; }
+.fixed.inset-y-0.right-0 .bg-\[\#0E131F\] { background-color: #ffffff !important; }
+.fixed.inset-y-0.right-0 .border-white\/10 { border-color: #E9EDF2 !important; }
+.fixed.inset-y-0.right-0 .text-white { color: #18243A !important; }
+.fixed.inset-y-0.right-0 .text-gray-400 { color: #6F7F98 !important; }
+.fixed.inset-y-0.right-0 .bg-\[\#111827\],
+.fixed.inset-y-0.right-0 .bg-slate-900 { background-color: #F1F5F9 !important; }
+.fixed.inset-y-0.right-0 input {
+  background-color: #ffffff !important;
+  border-color: #E9EDF2 !important;
+  color: #18243A !important;
+}
+.fixed.inset-y-0.right-0 input::placeholder { color: #9DAFC5 !important; }
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track  { background: var(--scrollbar-track); }
 ::-webkit-scrollbar-thumb  { background: var(--scrollbar-thumb); border-radius: 3px; }
@@ -482,23 +276,6 @@
   50%       { opacity: 0.4; transform: scale(0.85); }
 }
 .pulse-live { animation: pulse-dot 2s ease-in-out infinite; }
-
-/* ─── Glassmorphism card surfaces (dark theme only) ─────────────────────── */
-.glass-panel {
-  background: rgba(17, 24, 39, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-.glass-panel-hover {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.glass-panel-hover:hover {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: rgba(59, 130, 246, 0.35);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-}
 
 /* ─── Reduced motion ────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {

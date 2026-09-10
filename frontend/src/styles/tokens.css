@@ -1,18 +1,21 @@
 @import 'tailwindcss';
 
+/* Kept in sync with index.css's :root block. Not currently imported by
+   any entry point (index.css owns the live token set) — retained as a
+   standalone reference sheet. */
 @layer base {
   :root {
-    --color-background: #0b0f17;
-    --color-surface: #111827;
-    --color-card: rgba(17, 24, 39, 0.75);
-    --color-border: rgba(255, 255, 255, 0.08);
-    --color-border-strong: rgba(59, 130, 246, 0.35);
-    --color-text: #f3f4f6;
-    --color-text-muted: #9ca3af;
-    --color-accent: #3b82f6;
-    --color-success: #10b981;
-    --color-warning: #f59e0b;
-    --color-danger: #ef4444;
-    --color-critical: #f97316;
+    --color-background: #ffffff;
+    --color-surface: #F1F5F9;
+    --color-card: #ffffff;
+    --color-border: #E9EDF2;
+    --color-border-strong: rgba(47, 82, 214, 0.35);
+    --color-text: #18243A;
+    --color-text-muted: #6F7F98;
+    --color-accent: #2F52D6;
+    --color-success: #15803d;
+    --color-warning: #92400e;
+    --color-danger: #b91c1c;
+    --color-critical: #b91c1c;
   }
 }

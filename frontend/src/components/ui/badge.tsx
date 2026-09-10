@@ -1,11 +1,13 @@
 import { HTMLAttributes, forwardRef } from 'react';
 import { cn } from '../../utils/cn';
 
+// Tag / Category Label — intentionally ghost-like: no background,
+// no border, just a typographic marker that groups without visual weight.
 export const Badge = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-200', className)}
+      className={cn('inline-flex items-center text-[14px] font-normal tracking-wide text-[#9DAFC5]', className)}
       {...props}
     />
   ),

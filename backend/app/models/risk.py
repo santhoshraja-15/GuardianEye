@@ -45,6 +45,12 @@ class DamagePrediction(Base):
         String(50), default="POTENTIAL_DAMAGE", index=True
     )  # NOT_OBSERVED, POTENTIAL_DAMAGE, CONFIRMED_BY_HUMAN, CONFIRMED_BY_EXTERNAL_SYSTEM
     factors_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # DamagePredictor computes this (product unit value x damage probability)
+    # for every event — previously discarded at persistence time, which is
+    # why dashboard "damage loss" used to be a made-up formula instead of a
+    # real SUM() over this column. Nullable so existing rows (created before
+    # this column existed) read back as "not available" rather than a false 0.
+    estimated_financial_loss_usd: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     behaviour_event: Mapped["BehaviourEvent"] = relationship(
         "BehaviourEvent", back_populates="damage_prediction"

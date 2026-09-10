@@ -2,21 +2,18 @@
 Context Enrichment Engine for GuardianEye
 Associates product fragility, SKU metadata, zone risk profiles, and operational parameters with detected behaviour events.
 """
-from dataclasses import dataclass, field
+import dataclasses
+from dataclasses import dataclass
 from typing import Dict, Optional
 
+from ai.context.product_catalog import (
+    CLASS_DEFAULT_PROFILES,
+    DEMO_SKU_CATALOG,
+    GENERIC_FALLBACK_PROFILE,
+    ProductContext,
+)
 
-@dataclass
-class ProductContext:
-    sku: str
-    product_name: str
-    category: str
-    fragility_rating: int  # 1 (rugged) to 5 (extremely delicate: electronics/glass)
-    unit_value_usd: float
-    max_safe_drop_height_px: float = 30.0
-    max_stack_height_units: int = 4
-    requires_upright_orientation: bool = True
-    weight_kg: float = 5.0
+__all__ = ["ProductContext", "EnrichedBehaviourContext", "ContextEnricher", "context_enricher"]
 
 
 @dataclass
@@ -29,17 +26,17 @@ class EnrichedBehaviourContext:
 
 
 class ContextEnricher:
-    """Enriches detections with deterministic SKU and warehouse zone context."""
+    """Enriches detections with deterministic product/SKU and warehouse zone context.
 
-    DEFAULT_PRODUCT = ProductContext(
-        sku="SKU-GENERIC-BOX",
-        product_name="Standard Shipping Carton",
-        category="General Goods",
-        fragility_rating=2,
-        unit_value_usd=50.0,
-        max_safe_drop_height_px=40.0,
-        max_stack_height_units=5,
-    )
+    Resolution order for `sku_or_class` (see product_catalog.py for why there's
+    no single "the" product lookup): an exact match in the caller-supplied SKU
+    catalog first (real product master data, when a warehouse has it) — then
+    a per-detected-object-class default profile — then a generic fallback.
+    Every returned ProductContext carries `profile_source` so callers can tell
+    a verified SKU match from a class-based guess.
+    """
+
+    DEFAULT_PRODUCT = GENERIC_FALLBACK_PROFILE
 
     ZONE_MULTIPLIERS: Dict[str, float] = {
         "LOADING_DOCK": 1.4,
@@ -51,12 +48,19 @@ class ContextEnricher:
     }
 
     def __init__(self, catalog: Optional[Dict[str, ProductContext]] = None):
-        self.catalog = catalog or {}
+        # Real SKU master data, if the caller has any (falls back to the
+        # illustrative demo catalog so existing call sites that pass a
+        # "SKU-..." string keep resolving as before).
+        self.catalog = {**DEMO_SKU_CATALOG, **(catalog or {})}
 
     def get_product_context(self, sku_or_class: Optional[str] = None) -> ProductContext:
-        if sku_or_class and sku_or_class in self.catalog:
-            return self.catalog[sku_or_class]
-        return self.DEFAULT_PRODUCT
+        if sku_or_class:
+            if sku_or_class in self.catalog:
+                profile = self.catalog[sku_or_class]
+                return dataclasses.replace(profile, profile_source="CONFIGURED_SKU")
+            if sku_or_class in CLASS_DEFAULT_PROFILES:
+                return CLASS_DEFAULT_PROFILES[sku_or_class]
+        return dataclasses.replace(self.DEFAULT_PRODUCT, profile_source="GENERIC_FALLBACK")
 
     def get_zone_multiplier(self, zone_code: Optional[str]) -> float:
         if not zone_code:

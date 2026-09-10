@@ -54,6 +54,25 @@ class PreventionEngine:
             observed.append(f"Entity placed in aisle / pathway '{context.zone_code}'.")
             inferred.append("Inbound buffer staging capacity reached, causing overflow into pathways.")
 
+        elif b_type in (BehaviourType.B09_PALLET_MISALIGNMENT, BehaviourType.B17_OVERLOADING_PALLET):
+            cat = RootCauseCategory.PROCESS
+            metric = behaviour.evidence.metrics or {}
+            observed.append(
+                f"Pallet load support ratio {metric.get('pallet_support_ratio')}"
+                if b_type == BehaviourType.B09_PALLET_MISALIGNMENT
+                else f"Pallet carrying {metric.get('loaded_item_count')} separate loads."
+            )
+            inferred.append("Loading crew not verifying pallet footprint coverage / max load count before dispatch.")
+
+        elif b_type == BehaviourType.B20_COLLISION_RISK:
+            cat = RootCauseCategory.CONGESTION
+            observed.append(
+                f"{behaviour.evidence.primary_class} (ID {behaviour.evidence.primary_entity_id}) and "
+                f"{behaviour.evidence.secondary_class} (ID {behaviour.evidence.secondary_entity_id}) on converging paths."
+            )
+            inferred.append("Shared pedestrian/vehicle traffic lane without separated right-of-way or mirrors/warning zone.")
+            conf = 0.8  # predictive, not an observed collision
+
         else:
             cat = RootCauseCategory.PROCESS
             observed.append(f"Behaviour {b_type.value} recorded.")
@@ -109,15 +128,26 @@ class PreventionEngine:
             )
 
         if root_cause.cause_category == RootCauseCategory.CONGESTION:
-            recs.append(
-                RecommendationResult(
-                    action_title="Re-design Staging Buffer Demarcation",
-                    description="Repaint floor buffer boundaries and add LiDAR warning sensors in transit aisles.",
-                    prevention_type=PreventionType.LAYOUT_MODIFICATION,
-                    estimated_risk_reduction_pct=60.0,
-                    implementation_priority="P2",
+            if behaviour.behaviour_type == BehaviourType.B20_COLLISION_RISK:
+                recs.append(
+                    RecommendationResult(
+                        action_title="Separate Pedestrian and Vehicle Traffic Lanes",
+                        description="Install physical lane separation, convex mirrors, and proximity-warning beacons where forklift/trolley and pedestrian paths cross.",
+                        prevention_type=PreventionType.LAYOUT_MODIFICATION,
+                        estimated_risk_reduction_pct=75.0,
+                        implementation_priority="P0",
+                    )
                 )
-            )
+            else:
+                recs.append(
+                    RecommendationResult(
+                        action_title="Re-design Staging Buffer Demarcation",
+                        description="Repaint floor buffer boundaries and add LiDAR warning sensors in transit aisles.",
+                        prevention_type=PreventionType.LAYOUT_MODIFICATION,
+                        estimated_risk_reduction_pct=60.0,
+                        implementation_priority="P2",
+                    )
+                )
 
         return recs
 

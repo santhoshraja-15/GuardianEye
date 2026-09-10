@@ -69,9 +69,30 @@ class DamagePredictor:
 
         # 5. Stacking violation evaluation
         elif b_type in (BehaviourType.B05_IMPROPER_STACKING, BehaviourType.B06_UNSTABLE_STACK):
-            prob = 0.45
+            prob = 0.65 if b_type == BehaviourType.B06_UNSTABLE_STACK else 0.45
+            damage_type = DamageType.STRUCTURAL_BREAKAGE if b_type == BehaviourType.B06_UNSTABLE_STACK else DamageType.PACKAGING_DEFORMATION
+            factors.append("Uneven compressive stack load" if b_type == BehaviourType.B05_IMPROPER_STACKING else "Severely unsupported stack — collapse risk")
+
+        # 6. Pallet misalignment / overloading evaluation
+        elif b_type == BehaviourType.B09_PALLET_MISALIGNMENT:
+            prob = 0.5
             damage_type = DamageType.PACKAGING_DEFORMATION
-            factors.append("Uneven compressive stack load")
+            factors.append("Load overhangs pallet footprint — uneven support")
+
+        elif b_type == BehaviourType.B17_OVERLOADING_PALLET:
+            prob = 0.55
+            damage_type = DamageType.STRUCTURAL_BREAKAGE
+            factors.append("Pallet carrying more separate loads than its footprint reliably supports")
+
+        # 7. Collision risk — no impact has occurred yet, so this predicts a
+        # potential future event rather than damage already sustained. The
+        # probability reflects estimated collision likelihood, not product
+        # damage probability, and is intentionally excluded from the
+        # financial-loss estimate below (impact hasn't happened).
+        elif b_type == BehaviourType.B20_COLLISION_RISK:
+            prob = 0.0
+            damage_type = DamageType.NO_OBSERVED_DAMAGE
+            factors.append("Converging trajectory detected — no impact has occurred; this is a predictive safety warning, not observed damage")
 
         else:
             prob = 0.15

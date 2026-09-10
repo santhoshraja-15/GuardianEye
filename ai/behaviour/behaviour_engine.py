@@ -2,6 +2,7 @@
 Behaviour Intelligence Engine - Deterministic Multi-Scenario Detector
 Detects Core Warehouse Risk Scenarios (B01 - B10) and Extensions (B11 - B20)
 """
+import math
 from typing import Dict, List, Optional, Set, Tuple
 from ai.behaviour.behaviour_schemas import (
     BehaviourEvidence,
@@ -11,6 +12,7 @@ from ai.behaviour.behaviour_schemas import (
     FrameBehaviours,
 )
 from ai.interaction.interaction_schemas import FrameInteractions, InteractionType
+from ai.spatial.coordinate_transform import anchor_point, normalize
 from ai.spatial.zone_geometry import Point, PolygonZone, ZoneEvaluator
 from ai.temporal.temporal_schemas import EntityTemporalTimeline, TemporalState
 from ai.tracking.tracker_schemas import FrameTracks, TrackedObject, TrackState
@@ -32,9 +34,19 @@ class BehaviourEngine:
         frame_interactions: FrameInteractions,
         timelines: Dict[int, EntityTemporalTimeline],
         zones: Optional[Dict[str, PolygonZone]] = None,
+        frame_width: float = 1920.0,
+        frame_height: float = 1080.0,
     ) -> FrameBehaviours:
         """
         Run multi-scenario detection rules on current frame state.
+
+        `zones` must already be normalized to the 0-1 plane (see
+        ai.pipeline_runner._load_spatial_zones) — frame_width/height are
+        used to normalize each track's own position into that same
+        plane before any zone-matching, which is what makes the
+        comparison valid regardless of the zone-authoring plane's own
+        (undeclared) scale. Defaults preserve the historical behaviour
+        for any caller that doesn't pass real video dimensions.
         """
         frame_idx = frame_tracks.frame_index
         timestamp = frame_tracks.timestamp_seconds
@@ -58,7 +70,9 @@ class BehaviourEngine:
                 continue
             track = tracks_by_id[track_id]
             if track.class_name in ("carton", "product"):
-                drag_event = self._detect_drag(track, timeline, frame_interactions, zones, frame_idx, timestamp)
+                drag_event = self._detect_drag(
+                    track, timeline, frame_interactions, zones, frame_idx, timestamp, frame_width, frame_height
+                )
                 if drag_event:
                     detected_behaviours.append(drag_event)
 
@@ -85,7 +99,9 @@ class BehaviourEngine:
 
         # 6. B07 & B16: Incorrect Placement & Aisle Obstruction
         if zones:
-            placement_events = self._detect_placement_violations(frame_tracks, zones, frame_idx, timestamp)
+            placement_events = self._detect_placement_violations(
+                frame_tracks, zones, frame_idx, timestamp, frame_width, frame_height
+            )
             detected_behaviours.extend(placement_events)
 
         # 7. B11: Stepping on Carton / Walking over products
@@ -101,6 +117,14 @@ class BehaviourEngine:
                 roll_event = self._detect_rolling(track, timeline, frame_idx, timestamp)
                 if roll_event:
                     detected_behaviours.append(roll_event)
+
+        # 9. B09 & B17: Pallet load misalignment / overloading
+        pallet_events = self._detect_pallet_load_violations(frame_tracks, frame_idx, timestamp)
+        detected_behaviours.extend(pallet_events)
+
+        # 10. B20: Collision risk (converging forklift/trolley trajectories)
+        collision_events = self._detect_collision_risk(frame_tracks, frame_idx, timestamp)
+        detected_behaviours.extend(collision_events)
 
         return FrameBehaviours(
             frame_index=frame_idx,
@@ -157,6 +181,8 @@ class BehaviourEngine:
         zones: Optional[Dict[str, PolygonZone]],
         frame_idx: int,
         timestamp: float,
+        frame_width: float = 1920.0,
+        frame_height: float = 1080.0,
     ) -> Optional[DetectedBehaviour]:
         """Detect B02 / B15: Dragging carton across floor/dock."""
         # Check if carton is in contact with person while moving horizontally on the floor
@@ -172,9 +198,16 @@ class BehaviourEngine:
             is_wet_floor = False
             zone_code = None
             if zones:
+                # Normalize the carton's own footpoint into the same 0-1
+                # plane `zones` is authored in (see evaluate_frame's
+                # docstring) — comparing a raw video-pixel centroid
+                # against a zone polygon authored in an unrelated plane
+                # is the exact bug this normalization step fixes.
+                anchor = anchor_point(track.current_bbox or [*track.centroid_xy, *track.centroid_xy], track.class_name)
+                norm_pt = Point(*normalize(anchor, frame_width, frame_height))
                 for z_code, zone in zones.items():
                     if "WET" in z_code.upper() or "FLOOR" in z_code.upper():
-                        if ZoneEvaluator.is_point_inside(Point(track.centroid_xy[0], track.centroid_xy[1]), zone):
+                        if ZoneEvaluator.is_point_inside(norm_pt, zone):
                             zone_code = z_code
                             if "WET" in z_code.upper():
                                 is_wet_floor = True
@@ -300,25 +333,222 @@ class BehaviourEngine:
                 avg_h = (top_box.height_px + bottom_box.height_px) / 2.0
 
                 if vert_dist < avg_h * 1.5 and horiz_dist > avg_w * 0.35:
-                    # Stacking overhang > 35%
+                    overhang_ratio = round(horiz_dist / avg_w, 2)
+                    # >65% of the top box unsupported by the box below it is no
+                    # longer "leaning" (B05) but genuinely unstable — most of
+                    # its weight has no support beneath it at all (B06).
+                    is_unstable = overhang_ratio > 0.65
                     events.append(
                         DetectedBehaviour(
-                            behaviour_type=BehaviourType.B05_IMPROPER_STACKING,
-                            severity=BehaviourSeverity.MEDIUM,
+                            behaviour_type=(
+                                BehaviourType.B06_UNSTABLE_STACK if is_unstable else BehaviourType.B05_IMPROPER_STACKING
+                            ),
+                            severity=BehaviourSeverity.CRITICAL if is_unstable else BehaviourSeverity.MEDIUM,
                             start_frame=frame_idx,
                             end_frame=frame_idx,
                             start_time_seconds=timestamp,
                             end_time_seconds=timestamp,
                             duration_seconds=0.033,
                             confidence=0.87,
-                            description=f"Improper stacking overhang ({horiz_dist/avg_w*100:.1f}%) between cartons {top_box.track_id} and {bottom_box.track_id}.",
+                            description=(
+                                f"{'Unstable stack' if is_unstable else 'Improper stacking overhang'} "
+                                f"({overhang_ratio*100:.1f}% unsupported) between cartons {top_box.track_id} and {bottom_box.track_id}."
+                            ),
                             evidence=BehaviourEvidence(
-                                trigger_rule="RULE_STACK_OVERHANG_EXCEEDED",
+                                trigger_rule="RULE_STACK_UNSTABLE_SUPPORT" if is_unstable else "RULE_STACK_OVERHANG_EXCEEDED",
                                 primary_entity_id=top_box.track_id,
                                 primary_class=top_box.class_name,
                                 secondary_entity_id=bottom_box.track_id,
                                 secondary_class=bottom_box.class_name,
-                                metrics={"overhang_ratio": round(horiz_dist / avg_w, 2)},
+                                metrics={"overhang_ratio": overhang_ratio},
+                            ),
+                            keyframe_indices=[frame_idx],
+                        )
+                    )
+
+        # Tall, narrow single stacks are also unstable even with no second
+        # box to compare against — a real (if crude) top-heaviness signal
+        # from bbox aspect ratio alone, since no depth/weight data exists.
+        for stack in [t for t in frame_tracks.active_tracks if t.class_name == "stack"]:
+            if stack.width_px > 0 and stack.height_px / stack.width_px > 3.0:
+                aspect = round(stack.height_px / stack.width_px, 2)
+                events.append(
+                    DetectedBehaviour(
+                        behaviour_type=BehaviourType.B06_UNSTABLE_STACK,
+                        severity=BehaviourSeverity.HIGH,
+                        start_frame=frame_idx,
+                        end_frame=frame_idx,
+                        start_time_seconds=timestamp,
+                        end_time_seconds=timestamp,
+                        duration_seconds=0.033,
+                        confidence=0.82,
+                        description=f"Stack (ID: {stack.track_id}) has excessive height-to-base ratio ({aspect}:1).",
+                        evidence=BehaviourEvidence(
+                            trigger_rule="RULE_STACK_HEIGHT_TO_BASE_RATIO",
+                            primary_entity_id=stack.track_id,
+                            primary_class=stack.class_name,
+                            metrics={"height_to_base_ratio": aspect},
+                        ),
+                        keyframe_indices=[frame_idx],
+                    )
+                )
+        return events
+
+    def _detect_pallet_load_violations(
+        self,
+        frame_tracks: FrameTracks,
+        frame_idx: int,
+        timestamp: float,
+    ) -> List[DetectedBehaviour]:
+        """Detect B09 (load overhangs/misaligned on its pallet) and B17
+        (too many loads stacked on one pallet footprint). Both compare a
+        pallet's own bbox against carton/product/stack bboxes that rest
+        on or just above it — real bbox geometry, no fabricated weight
+        or count data."""
+        events: List[DetectedBehaviour] = []
+        pallets = [t for t in frame_tracks.active_tracks if t.class_name == "pallet"]
+        loads = [t for t in frame_tracks.active_tracks if t.class_name in ("carton", "product", "stack")]
+
+        for pallet in pallets:
+            pbox = pallet.bbox_xyxy or [*pallet.centroid_xy, *pallet.centroid_xy]
+            px1, py1, px2, py2 = pbox
+            pallet_width = px2 - px1
+            pallet_height = py2 - py1
+            if pallet_width <= 0:
+                continue
+
+            loaded_on_pallet: List[TrackedObject] = []
+            for load in loads:
+                lbox = load.bbox_xyxy or [*load.centroid_xy, *load.centroid_xy]
+                lx1, ly1, lx2, ly2 = lbox
+                load_width = lx2 - lx1
+                if load_width <= 0:
+                    continue
+
+                # "Resting on this pallet": horizontally overlapping and the
+                # load's bottom edge sits at/just above the pallet's top.
+                horiz_overlap = min(lx2, px2) - max(lx1, px1)
+                resting_on_pallet = horiz_overlap > 0 and (py1 - pallet_height * 1.5) <= ly2 <= (py2 + pallet_height * 0.3)
+                if not resting_on_pallet:
+                    continue
+
+                loaded_on_pallet.append(load)
+                overlap_ratio = round(horiz_overlap / load_width, 2)
+                if overlap_ratio < 0.6:
+                    events.append(
+                        DetectedBehaviour(
+                            behaviour_type=BehaviourType.B09_PALLET_MISALIGNMENT,
+                            severity=BehaviourSeverity.HIGH,
+                            start_frame=frame_idx,
+                            end_frame=frame_idx,
+                            start_time_seconds=timestamp,
+                            end_time_seconds=timestamp,
+                            duration_seconds=0.033,
+                            confidence=0.85,
+                            description=(
+                                f"Load (ID: {load.track_id}) only {overlap_ratio*100:.0f}% supported by "
+                                f"pallet (ID: {pallet.track_id}) footprint — overhang / misalignment risk."
+                            ),
+                            evidence=BehaviourEvidence(
+                                trigger_rule="RULE_PALLET_LOAD_OVERHANG",
+                                primary_entity_id=pallet.track_id,
+                                primary_class=pallet.class_name,
+                                secondary_entity_id=load.track_id,
+                                secondary_class=load.class_name,
+                                metrics={"pallet_support_ratio": overlap_ratio},
+                            ),
+                            keyframe_indices=[frame_idx],
+                        )
+                    )
+
+            if len(loaded_on_pallet) >= 4:
+                events.append(
+                    DetectedBehaviour(
+                        behaviour_type=BehaviourType.B17_OVERLOADING_PALLET,
+                        severity=BehaviourSeverity.HIGH,
+                        start_frame=frame_idx,
+                        end_frame=frame_idx,
+                        start_time_seconds=timestamp,
+                        end_time_seconds=timestamp,
+                        duration_seconds=0.033,
+                        confidence=0.8,
+                        description=f"Pallet (ID: {pallet.track_id}) carrying {len(loaded_on_pallet)} separate loads — possible overloading.",
+                        evidence=BehaviourEvidence(
+                            trigger_rule="RULE_PALLET_LOAD_COUNT_EXCEEDED",
+                            primary_entity_id=pallet.track_id,
+                            primary_class=pallet.class_name,
+                            metrics={"loaded_item_count": len(loaded_on_pallet)},
+                        ),
+                        keyframe_indices=[frame_idx],
+                    )
+                )
+        return events
+
+    def _detect_collision_risk(
+        self,
+        frame_tracks: FrameTracks,
+        frame_idx: int,
+        timestamp: float,
+    ) -> List[DetectedBehaviour]:
+        """Detect B20: two entities (forklift/trolley vs. person/forklift/
+        trolley) on a closing trajectory — real relative-velocity physics
+        (closing speed = negative rate of change of separation distance),
+        not a fixed proximity radius. Flags only when they are both close
+        AND actively converging fast enough to plausibly meet soon."""
+        events: List[DetectedBehaviour] = []
+        movers = [t for t in frame_tracks.active_tracks if t.class_name in ("forklift", "trolley")]
+        others = [t for t in frame_tracks.active_tracks if t.class_name in ("person", "forklift", "trolley")]
+        seen_pairs: Set[Tuple[int, int]] = set()
+
+        for a in movers:
+            for b in others:
+                if a.track_id == b.track_id:
+                    continue
+                pair_key = tuple(sorted((a.track_id, b.track_id)))
+                if pair_key in seen_pairs:
+                    continue
+                seen_pairs.add(pair_key)
+
+                dx = b.centroid_xy[0] - a.centroid_xy[0]
+                dy = b.centroid_xy[1] - a.centroid_xy[1]
+                distance = math.hypot(dx, dy)
+                if distance <= 1e-6:
+                    continue
+
+                # Positive when separation is shrinking: with dx,dy pointing
+                # a->b and rel_v = velocity of a relative to b, the rate of
+                # change of distance is -(dx*rel_vx + dy*rel_vy)/distance,
+                # so closing speed (its negation) is +(dx*rel_vx + dy*rel_vy)/distance.
+                rel_vx = a.velocity_xy[0] - b.velocity_xy[0]
+                rel_vy = a.velocity_xy[1] - b.velocity_xy[1]
+                closing_speed = ((dx * rel_vx) + (dy * rel_vy)) / distance
+                if closing_speed <= 0:
+                    continue
+                time_to_contact = distance / closing_speed
+
+                if distance < 220.0 and closing_speed > 15.0 and time_to_contact < 1.5:
+                    events.append(
+                        DetectedBehaviour(
+                            behaviour_type=BehaviourType.B20_COLLISION_RISK,
+                            severity=BehaviourSeverity.CRITICAL,
+                            start_frame=frame_idx,
+                            end_frame=frame_idx,
+                            start_time_seconds=timestamp,
+                            end_time_seconds=timestamp,
+                            duration_seconds=0.033,
+                            confidence=0.86,
+                            description=(
+                                f"{a.class_name.title()} (ID: {a.track_id}) closing on {b.class_name} (ID: {b.track_id}) "
+                                f"at {closing_speed:.1f}px/s, est. {time_to_contact:.2f}s to contact."
+                            ),
+                            evidence=BehaviourEvidence(
+                                trigger_rule="RULE_CONVERGING_TRAJECTORY",
+                                primary_entity_id=a.track_id,
+                                primary_class=a.class_name,
+                                secondary_entity_id=b.track_id,
+                                secondary_class=b.class_name,
+                                peak_velocity_px_s=closing_speed,
+                                metrics={"distance_px": round(distance, 1), "time_to_contact_s": round(time_to_contact, 2)},
                             ),
                             keyframe_indices=[frame_idx],
                         )
@@ -331,12 +561,17 @@ class BehaviourEngine:
         zones: Dict[str, PolygonZone],
         frame_idx: int,
         timestamp: float,
+        frame_width: float = 1920.0,
+        frame_height: float = 1080.0,
     ) -> List[DetectedBehaviour]:
         """Detect B07 & B16: Placing items in hazardous pathways or blocking aisles."""
         events: List[DetectedBehaviour] = []
         for track in frame_tracks.active_tracks:
             if track.class_name in ("carton", "product", "pallet") and track.speed_px_per_sec < 2.0:
-                pt = Point(track.centroid_xy[0], track.centroid_xy[1])
+                anchor = anchor_point(
+                    track.current_bbox or [*track.centroid_xy, *track.centroid_xy], track.class_name
+                )
+                pt = Point(*normalize(anchor, frame_width, frame_height))
                 for z_code, zone in zones.items():
                     if "AISLE" in z_code.upper() or "FORKLIFT" in z_code.upper() or "FIRE" in z_code.upper():
                         if ZoneEvaluator.is_point_inside(pt, zone):

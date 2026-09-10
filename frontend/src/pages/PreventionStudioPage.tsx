@@ -75,10 +75,10 @@ export const PreventionStudioPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">
+          <h1 className="text-xl font-bold text-[#18243A] tracking-tight">
             Prevention Studio & Counterfactual Simulator
           </h1>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-[#6F7F98]">
             Factual Root Cause Analysis (RCA), corrective action plans, and what-if risk delta simulations.
           </p>
         </div>
@@ -90,24 +90,24 @@ export const PreventionStudioPage: React.FC = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* Root Cause Analysis Card */}
           <div className="glass-panel rounded-xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between border-b border-[#E9EDF2] pb-3">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-amber-400" />
-                <h3 className="text-sm font-bold text-white">
+                <ShieldAlert className="w-4 h-4 text-[#92400e]" />
+                <h3 className="text-sm font-bold text-[#18243A]">
                   Active Case RCA: {selectedIncident ? `${selectedIncident.incident_code} (${selectedIncident.title})` : 'Incident Investigation'}
                 </h3>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">
+              <span className="px-2 py-0.5 rounded text-[10px] bg-[#5D87FF]/15 text-[#2F52D6] border border-[#5D87FF]/30 font-bold">
                 {activeRootCause?.cause_category ?? 'ERGONOMIC & PROCESS'}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-3.5 rounded-lg bg-black/40 border border-white/5 space-y-2">
-                <div className="text-[11px] font-mono text-gray-400 uppercase tracking-wider">
+              <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] space-y-2">
+                <div className="text-[11px] text-[#6F7F98] uppercase tracking-wider">
                   Observed Physical Facts:
                 </div>
-                <ul className="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+                <ul className="text-xs text-[#334155] space-y-1.5 list-disc list-inside">
                   {observedFacts.length > 0 ? (
                     observedFacts.map((fact, idx) => <li key={idx}>{fact}</li>)
                   ) : (
@@ -120,11 +120,11 @@ export const PreventionStudioPage: React.FC = () => {
                 </ul>
               </div>
 
-              <div className="p-3.5 rounded-lg bg-black/40 border border-white/5 space-y-2">
-                <div className="text-[11px] font-mono text-gray-400 uppercase tracking-wider">
+              <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] space-y-2">
+                <div className="text-[11px] text-[#6F7F98] uppercase tracking-wider">
                   Inferred Root Factors:
                 </div>
-                <ul className="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+                <ul className="text-xs text-[#334155] space-y-1.5 list-disc list-inside">
                   {inferredFactors.length > 0 ? (
                     inferredFactors.map((fact, idx) => <li key={idx}>{fact}</li>)
                   ) : (
@@ -141,9 +141,9 @@ export const PreventionStudioPage: React.FC = () => {
 
           {/* Corrective Action Recommendations */}
           <div className="glass-panel rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/10 pb-3">
-              <Lightbulb className="w-4 h-4 text-yellow-400" />
-              <h3 className="text-sm font-bold text-white">
+            <div className="flex items-center gap-2 border-b border-[#E9EDF2] pb-3">
+              <Lightbulb className="w-4 h-4 text-[#92400e]" />
+              <h3 className="text-sm font-bold text-[#18243A]">
                 Prioritized Corrective Recommendations
               </h3>
             </div>
@@ -153,28 +153,28 @@ export const PreventionStudioPage: React.FC = () => {
                 displayRecs.map((rec) => (
                   <div
                     key={rec.id}
-                    className="p-3.5 rounded-lg bg-black/30 border border-white/5 flex items-start justify-between gap-4 hover:border-white/15 transition-all"
+                    className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] flex items-start justify-between gap-4 hover:border-[#CBD5E1] transition-all"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#5D87FF]/15 text-[#2F52D6] border border-[#5D87FF]/30">
                           {rec.prevention_type}
                         </span>
-                        <span className="text-xs font-bold text-white">{rec.action_title}</span>
+                        <span className="text-xs font-bold text-[#18243A]">{rec.action_title}</span>
                       </div>
-                      <div className="text-xs text-gray-400">{rec.description}</div>
-                      <span className="text-[10px] font-mono text-gray-500">Status: {rec.status}</span>
+                      <div className="text-xs text-[#6F7F98]">{rec.description}</div>
+                      <span className="text-[10px] text-[#9DAFC5]">Status: {rec.status}</span>
                     </div>
 
                     <div className="text-right">
-                      <span className="px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold whitespace-nowrap">
+                      <span className="px-2 py-1 rounded-md bg-[rgba(21,128,61,0.1)] border border-[rgba(21,128,61,0.3)] text-[#15803d] text-xs font-bold whitespace-nowrap">
                         {rec.estimated_risk_reduction_pct}% Risk Reduction
                       </span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="p-4 rounded-lg border border-dashed border-white/10 text-xs text-gray-400">
+                <div className="p-4 rounded-lg border border-dashed border-[#E9EDF2] text-xs text-[#6F7F98]">
                   No specific corrective actions logged for this case.
                 </div>
               )}
@@ -183,9 +183,9 @@ export const PreventionStudioPage: React.FC = () => {
 
           {/* Warehouse SOP Rules Matrix */}
           <div className="glass-panel rounded-xl p-5 space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/10 pb-3">
-              <BookOpen className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-sm font-bold text-white">
+            <div className="flex items-center gap-2 border-b border-[#E9EDF2] pb-3">
+              <BookOpen className="w-4 h-4 text-[#2F52D6]" />
+              <h3 className="text-sm font-bold text-[#18243A]">
                 Active Warehouse Safety Standard Operating Procedures (SOPs)
               </h3>
             </div>
@@ -194,16 +194,16 @@ export const PreventionStudioPage: React.FC = () => {
               {rules.map((rule) => (
                 <div
                   key={rule.behaviour_code}
-                  className="p-3 rounded-lg bg-black/30 border border-white/5 space-y-1.5"
+                  className="p-3 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white">{rule.rule_name}</span>
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-red-500/20 text-red-300">
+                    <span className="text-xs font-bold text-[#18243A]">{rule.rule_name}</span>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[rgba(185,28,28,0.1)] text-[#b91c1c]">
                       {rule.severity_default}
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-400">{rule.description}</p>
-                  <div className="text-[10px] font-mono text-blue-400/80">{rule.sop_citation}</div>
+                  <p className="text-[11px] text-[#6F7F98]">{rule.description}</p>
+                  <div className="text-[10px] text-[#2F52D6]/80">{rule.sop_citation}</div>
                 </div>
               ))}
             </div>
@@ -213,31 +213,31 @@ export const PreventionStudioPage: React.FC = () => {
         {/* Right Col: Interactive What-If Counterfactual Simulator */}
         <div className="space-y-4">
           <div className="glass-panel rounded-xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between border-b border-[#E9EDF2] pb-3">
               <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-blue-400" />
-                <h3 className="text-sm font-bold text-white">What-If Simulator</h3>
+                <Sliders className="w-4 h-4 text-[#2F52D6]" />
+                <h3 className="text-sm font-bold text-[#18243A]">What-If Simulator</h3>
               </div>
-              <span className="text-[10px] font-mono text-blue-400">PHYSICAL MODEL</span>
+              <span className="text-[10px] text-[#2F52D6]">PHYSICAL MODEL</span>
             </div>
 
             {/* Risk Delta Score Comparison */}
-            <div className="p-4 rounded-xl bg-black/60 border border-white/10 text-center space-y-2">
+            <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E9EDF2] text-center space-y-2">
               <div className="flex items-center justify-around">
                 <div>
-                  <div className="text-[10px] font-mono text-gray-400">OBSERVED RISK</div>
-                  <div className="text-2xl font-bold font-mono text-red-400">
+                  <div className="text-[10px] text-[#6F7F98]">OBSERVED RISK</div>
+                  <div className="text-2xl font-bold text-[#b91c1c]">
                     {observedRiskScore}
                   </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-gray-500" />
+                <ArrowRight className="w-5 h-5 text-[#9DAFC5]" />
                 <div>
-                  <div className="text-[10px] font-mono text-gray-400">SIMULATED RISK</div>
-                  <div className="text-2xl font-bold font-mono text-emerald-400">{simScore}</div>
+                  <div className="text-[10px] text-[#6F7F98]">SIMULATED RISK</div>
+                  <div className="text-2xl font-bold text-[#15803d]">{simScore}</div>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-white/5 flex items-center justify-center gap-2 text-xs font-mono text-emerald-400 font-bold">
+              <div className="pt-2 border-t border-[#E9EDF2] flex items-center justify-center gap-2 text-xs text-[#15803d] font-bold">
                 <TrendingDown className="w-4 h-4" />
                 <span>
                   -{riskDelta} RISK DELTA ({reductionPct}% REDUCTION)
@@ -247,7 +247,7 @@ export const PreventionStudioPage: React.FC = () => {
 
             {/* Interactive Toggle Controls */}
             <div className="space-y-3 pt-2">
-              <div className="text-xs font-mono text-gray-400 uppercase tracking-wider">
+              <div className="text-xs text-[#6F7F98] uppercase tracking-wider">
                 Simulated Safety Interventions:
               </div>
 
@@ -275,14 +275,14 @@ export const PreventionStudioPage: React.FC = () => {
               ].map((ctrl, i) => (
                 <label
                   key={i}
-                  className="flex items-center justify-between p-3 rounded-lg bg-black/30 border border-white/5 cursor-pointer hover:border-white/15 transition-all"
+                  className="flex items-center justify-between p-3 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] cursor-pointer hover:border-[#CBD5E1] transition-all"
                 >
-                  <span className="text-xs text-gray-300 font-medium">{ctrl.label}</span>
+                  <span className="text-xs text-[#334155] font-medium">{ctrl.label}</span>
                   <input
                     type="checkbox"
                     checked={ctrl.checked}
                     onChange={(e) => ctrl.setter(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-[#CBD5E1] bg-white text-[#5D87FF] focus:ring-[#5D87FF]"
                   />
                 </label>
               ))}

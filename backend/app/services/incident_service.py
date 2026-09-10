@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 from backend.app.models.incident import Incident, IncidentHistory
 from backend.app.schemas.incident import IncidentCreateRequest, IncidentStatusUpdateRequest
+from backend.app.services.event_bus import event_bus
 
 
 class IncidentService:
@@ -93,6 +94,23 @@ class IncidentService:
         db.add(history_entry)
         db.commit()
         db.refresh(incident)
+
+        # Previously this method never published anything — the
+        # frontend's realtime router has always listened for
+        # INCIDENT_STATUS_CHANGED (frontend/src/services/realtime.ts) but
+        # nothing in the backend ever emitted it, so an incident's status
+        # changing never invalidated any cached query in another open tab.
+        event_bus.publish(
+            event="INCIDENT_STATUS_CHANGED",
+            warehouse_id=incident.warehouse_id,
+            data={
+                "incident_id": incident.id,
+                "incident_code": incident.incident_code,
+                "from_status": current_status,
+                "to_status": new_status,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
         return incident
 
     @staticmethod

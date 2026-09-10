@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
 const DashboardPage = lazy(() =>
   import('../pages/DashboardPage').then((module) => ({ default: module.DashboardPage })),
@@ -31,10 +32,20 @@ const AnalyticsPage = lazy(() =>
 const HumanReviewPage = lazy(() =>
   import('../pages/HumanReviewPage').then((module) => ({ default: module.HumanReviewPage })),
 );
+const CalibrationPage = lazy(() =>
+  import('../pages/CalibrationPage').then((module) => ({ default: module.CalibrationPage })),
+);
 
 export function AppRoutes() {
   return (
-    <Suspense fallback={<div className="p-8 text-sm text-gray-400">Loading workspace…</div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center gap-2 p-8 text-sm text-[#6F7F98]">
+          <Loader2 className="h-4 w-4 animate-spin text-[#5D87FF]" />
+          Loading workspace…
+        </div>
+      }
+    >
       <Routes>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/live" element={<LiveStreamsPage />} />
@@ -46,6 +57,7 @@ export function AppRoutes() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/dna" element={<DNAExplorerPage />} />
         <Route path="/human-review" element={<HumanReviewPage />} />
+        <Route path="/calibration" element={<CalibrationPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

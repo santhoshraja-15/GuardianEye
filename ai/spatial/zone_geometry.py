@@ -1,5 +1,12 @@
 """
-Spatial Geometry, Point-in-Polygon, and Zone Transition Engine
+Spatial Geometry and Point-in-Polygon Primitives
+
+Zone *transition* detection (an entity crossing from one zone into
+another) and proximity events live in ai/spatial/event_engine.py, which
+is built on top of the primitives here — point_in_polygon,
+distance_to_boundary, bbox_distance. This module only answers "is this
+point inside this polygon / how far from its edge / how far from that
+other box" — it holds no per-track state and emits no events itself.
 """
 from __future__ import annotations
 import math
@@ -88,7 +95,7 @@ class ZoneEvaluator:
 class SpatialGeometryEngine:
     """
     Mathematical spatial geometry engine evaluating point-in-polygon ray casting,
-    entity-to-zone proximity, inter-entity Euclidean distances, and zone transition events.
+    entity-to-zone boundary proximity, and inter-entity Euclidean distances.
     """
 
     @staticmethod
@@ -118,11 +125,54 @@ class SpatialGeometryEngine:
         return inside
 
     @staticmethod
+    def polygon_centroid(polygon: List[Tuple[float, float]]) -> Tuple[float, float]:
+        """Simple vertex-average centroid — sufficient for the roughly
+        rectangular warehouse zones this app configures, and exact for any
+        polygon when computing "where is this zone, roughly" rather than
+        needing the area-weighted centroid of an irregular shape."""
+        if not polygon:
+            return (0.0, 0.0)
+        xs = [p[0] for p in polygon]
+        ys = [p[1] for p in polygon]
+        return (sum(xs) / len(xs), sum(ys) / len(ys))
+
+    @staticmethod
     def euclidean_distance(p1: Tuple[float, float], p2: Tuple[float, float]) -> float:
         """Calculate Euclidean distance between two 2D points"""
         dx = p1[0] - p2[0]
         dy = p1[1] - p2[1]
         return math.sqrt(dx * dx + dy * dy)
+
+    @staticmethod
+    def _point_to_segment_distance(
+        p: Tuple[float, float], a: Tuple[float, float], b: Tuple[float, float]
+    ) -> float:
+        """Shortest distance from point p to the segment a-b."""
+        px, py = p
+        ax, ay = a
+        bx, by = b
+        dx, dy = bx - ax, by - ay
+        seg_len_sq = dx * dx + dy * dy
+        if seg_len_sq == 0:
+            return math.hypot(px - ax, py - ay)
+        t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / seg_len_sq))
+        proj_x, proj_y = ax + t * dx, ay + t * dy
+        return math.hypot(px - proj_x, py - proj_y)
+
+    @staticmethod
+    def distance_to_boundary(point: Tuple[float, float], polygon: List[Tuple[float, float]]) -> float:
+        """Real shortest distance from a point to the polygon's boundary
+        (minimum over every edge segment) — used to know how close an
+        entity is to leaving/entering a zone, not just whether it
+        already has. Returns 0.0 only for a degenerate (<2-vertex)
+        polygon, never as a stand-in for "not computed"."""
+        if len(polygon) < 2:
+            return 0.0
+        n = len(polygon)
+        return min(
+            SpatialGeometryEngine._point_to_segment_distance(point, polygon[i], polygon[(i + 1) % n])
+            for i in range(n)
+        )
 
     @staticmethod
     def bbox_distance(bbox1: List[float], bbox2: List[float]) -> float:
@@ -180,7 +230,7 @@ class SpatialGeometryEngine:
                         zone_name=zone.name,
                         zone_type=zone.zone_type,
                         is_inside=True,
-                        distance_to_boundary_px=0.0,
+                        distance_to_boundary_px=SpatialGeometryEngine.distance_to_boundary((cx, cy), zone.polygon),
                         is_restricted_violation=is_violation,
                     )
                 )

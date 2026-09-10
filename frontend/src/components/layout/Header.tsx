@@ -10,7 +10,6 @@ import {
   Wifi,
 } from 'lucide-react';
 import type { AuthUser } from '../../types/auth';
-import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   openAlertsCount: number;
@@ -56,74 +55,78 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const liveStatusColors = {
-    LIVE: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-    DEGRADED: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-    RECONNECTING: 'bg-sky-500/10 border-sky-500/20 text-sky-400',
-    OFFLINE: 'bg-red-500/10 border-red-500/20 text-red-400',
+    LIVE: 'bg-[rgba(21,128,61,0.08)] border-[rgba(21,128,61,0.25)] text-[#15803d]',
+    DEGRADED: 'bg-[rgba(146,64,14,0.08)] border-[rgba(146,64,14,0.25)] text-[#92400e]',
+    RECONNECTING: 'bg-[rgba(47,82,214,0.08)] border-[rgba(47,82,214,0.25)] text-[#2F52D6]',
+    OFFLINE: 'bg-[rgba(185,28,28,0.08)] border-[rgba(185,28,28,0.25)] text-[#b91c1c]',
   };
 
   return (
     <header
-      className={`h-16 bg-[#0B0F17]/90 backdrop-blur-md border-b border-white/10 px-4 md:px-8 flex items-center justify-between fixed top-0 right-0 left-0 z-20 transition-all duration-200 ${
+      className={`h-16 bg-white/90 backdrop-blur-md border-b border-[#E9EDF2] px-4 md:px-8 flex items-center justify-between fixed top-0 right-0 left-0 z-20 transition-all duration-200 ${
         sidebarCollapsed ? 'md:left-20' : 'md:left-64'
       }`}
     >
-      <div className="flex items-center gap-4 min-w-0">
+      <div className="flex items-center gap-4 shrink-0">
         <button
           type="button"
           aria-label="Open navigation"
           onClick={onOpenMobileNav}
-          className="ge-mobile-menu-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:border-white/20 transition-all md:hidden"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#E9EDF2] bg-white text-[#6F7F98] hover:text-[#18243A] hover:border-[#CBD5E1] transition-all md:hidden"
         >
           <Menu className="w-4 h-4" />
         </button>
-        <div className="min-w-0">
-          <div className="ge-page-label text-[10px] uppercase tracking-[0.18em] text-gray-500">Workspace</div>
-          <div className="ge-page-title text-sm font-medium text-white truncate">{currentPage}</div>
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.14em] text-[#9DAFC5] whitespace-nowrap">Workspace</div>
+          <div className="text-sm font-medium text-[#18243A] whitespace-nowrap font-[family-name:var(--font-signifier)]">{currentPage}</div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-3">
-        <div className="relative hidden md:block w-80 xl:w-96">
-          <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+      {/* Middle region is the one flexible element in this row (min-w-0
+          lets it shrink below its content size) — every other header
+          element is shrink-0, so the search field is what gives up width
+          first on a narrow viewport instead of the page title truncating
+          into unreadable fragments. */}
+      <div className="hidden md:flex flex-1 min-w-0 justify-end px-3">
+        <div className="relative w-full min-w-[160px] max-w-96">
+          <Search className="w-4 h-4 text-[#9DAFC5] absolute left-3 top-1/2 -translate-y-1/2" />
           <button
             type="button"
             onClick={onOpenCommandPalette}
-            className="ge-search-btn w-full bg-[#111827] border border-white/10 rounded-lg pl-9 pr-10 py-1.5 text-left text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500/50 transition-colors"
+            className="w-full bg-[#F1F5F9] border border-[#E9EDF2] rounded-full pl-9 pr-14 py-1.5 text-left text-xs text-[#6F7F98] hover:border-[#CBD5E1] focus:outline-none transition-colors truncate"
           >
             Search incidents, cameras, alerts, evidence...
           </button>
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] font-mono text-gray-400">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-[#E9EDF2] bg-white px-1.5 py-0.5 text-[10px] text-[#9DAFC5]">
             Ctrl+K
           </span>
         </div>
+      </div>
 
-        <div className="ge-time-badge hidden lg:flex font-mono text-xs text-gray-400 bg-black/40 border border-white/5 px-3 py-1.5 rounded-lg items-center gap-2">
-          <Terminal className="w-3.5 h-3.5 text-blue-400" />
+      <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        <div className="hidden lg:flex shrink-0 text-xs text-[#6F7F98] bg-[#F1F5F9] border border-[#E9EDF2] px-3 py-1.5 rounded-full items-center gap-2">
+          <Terminal className="w-3.5 h-3.5 text-[#2F52D6]" />
           <span>{timeStr}</span>
         </div>
 
         <div
           role="status"
           aria-label={`Connection status: ${connectionState}`}
-          className={`flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg border text-xs font-mono ${liveStatusColors[connectionState]}`}
+          className={`flex shrink-0 items-center gap-2 px-2 sm:px-3 py-1.5 rounded-full border text-xs ${liveStatusColors[connectionState]}`}
         >
           <Wifi className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">{connectionState}</span>
         </div>
 
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgba(21,128,61,0.08)] border border-[rgba(21,128,61,0.25)] text-[#15803d] text-xs">
           <CheckCircle className="w-3.5 h-3.5" />
-          <span>ZERO DRIFT</span>
+          <span>Zero drift</span>
         </div>
 
-        {/* Theme toggle — placed between ZERO DRIFT and user badge */}
-        <ThemeToggle />
-
         {user ? (
-          <div className="ge-user-badge hidden sm:flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200">
-            <span className="font-medium text-white">{user.full_name}</span>
-            <span className="text-slate-400">{user.role?.name ?? 'Operator'}</span>
+          <div className="hidden sm:flex items-center gap-3 rounded-full border border-[#E9EDF2] bg-white px-3 py-1.5 text-xs text-[#18243A]">
+            <span className="font-medium">{user.full_name}</span>
+            <span className="text-[#9DAFC5]">{user.role?.name ?? 'Operator'}</span>
           </div>
         ) : null}
 
@@ -131,11 +134,11 @@ export const Header: React.FC<HeaderProps> = ({
           type="button"
           aria-label={openAlertsCount > 0 ? `Open alerts (${openAlertsCount} open)` : 'Open alerts'}
           onClick={onOpenAlertsModal}
-          className="ge-alert-btn relative p-2 rounded-lg bg-[#111827] border border-white/10 text-gray-300 hover:text-white hover:border-white/20 transition-all"
+          className="relative p-2 rounded-full bg-white border border-[#E9EDF2] text-[#6F7F98] hover:text-[#18243A] hover:border-[#CBD5E1] transition-all"
         >
           <Bell className="w-4 h-4" />
           {openAlertsCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-mono font-bold flex items-center justify-center animate-pulse shadow-lg shadow-red-500/50">
+            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#b91c1c] text-white text-[10px] font-bold flex items-center justify-center">
               {openAlertsCount}
             </span>
           )}
@@ -143,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onOpenCommandPalette}
-          className="ge-cmd-btn hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-medium hover:bg-blue-600/30 transition-all"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#5D87FF] text-[#2F52D6] text-xs font-medium hover:bg-[#5D87FF]/10 transition-all"
         >
           <Command className="w-3.5 h-3.5" />
           <span>Command</span>
@@ -153,9 +156,9 @@ export const Header: React.FC<HeaderProps> = ({
           type="button"
           aria-label="Ask Copilot"
           onClick={onOpenCopilot}
-          className="ge-copilot-btn flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-medium hover:bg-blue-600/30 transition-all"
+          className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-full bg-[#5D87FF] text-white text-xs font-medium hover:bg-[#3F6AE0] transition-all"
         >
-          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+          <Sparkles className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Ask Copilot</span>
         </button>
       </div>

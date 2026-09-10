@@ -5,19 +5,14 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GuardianEye — AI Risk &amp; Intelligence</title>
-    <!-- Inline script: read persisted theme from localStorage BEFORE React
-         paints to avoid a flash of wrong theme on refresh. -->
-    <script>
-      (function () {
-        try {
-          var stored = JSON.parse(localStorage.getItem('guardianeye-app') || '{}');
-          var theme = stored && stored.state && stored.state.theme === 'light' ? 'light' : 'dark';
-          document.documentElement.setAttribute('data-theme', theme);
-        } catch (_) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
-      })();
-    </script>
+    <!-- Rounded UI typefaces: Plus Jakarta Sans (Tokotype) carries headings
+         and body text; Noto Sans is the fallback for glyphs it lacks. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>

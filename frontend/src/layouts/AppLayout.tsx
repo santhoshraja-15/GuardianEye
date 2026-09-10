@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CopilotChatDrawer } from '../components/copilot/CopilotChatDrawer';
 import { Header } from '../components/layout/Header';
@@ -19,6 +20,7 @@ const pageTitles: Record<string, string> = {
   '/evidence': 'Evidence Vault',
   '/prevention': 'Prevention Studio',
   '/digital-twin': 'Digital Twin',
+  '/calibration': 'Camera Calibration',
   '/dna': 'Behaviour DNA',
   '/analytics': 'Analytics',
   '/human-review': 'Human Review',
@@ -61,8 +63,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const currentPage = useMemo(() => pageTitles[location.pathname] ?? 'Workspace', [location.pathname]);
 
   return (
-    // ge-layout-root: targeted by [data-theme="light"] .ge-layout-root in index.css
-    <div className="ge-layout-root min-h-screen bg-[#0B0F17] text-gray-100 flex">
+    <div className="ge-layout-root min-h-screen bg-white text-[#18243A] flex">
       <Sidebar
         alertCount={openAlertsCount}
         onOpenCopilot={() => setCopilotOpen(true)}
@@ -88,31 +89,56 @@ export function AppLayout({ children }: AppLayoutProps) {
           onOpenMobileNav={() => setMobileNavOpen(true)}
           sidebarCollapsed={sidebarCollapsed}
         />
-        <main className="flex-1 min-w-0 mt-16 p-6 md:p-8 overflow-y-auto">{children}</main>
+        <main className="flex-1 min-w-0 mt-16 p-6 md:p-8 overflow-y-auto">
+          {/* Page-entry transition: quiet fade + 8px settle, no exit animation
+              (the incoming page painting immediately reads as more responsive
+              than waiting through an outgoing fade on a data-heavy dashboard). */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
 
-
+      {/* Not wrapped in AnimatePresence: only the mount plays a motion
+          transition (initial → animate). Closing removes the dialog from
+          the DOM in the same tick as the state update — Escape/backdrop
+          dismissal stays synchronous instead of waiting out an exit
+          animation, matching the rest of the app's keyboard/pointer
+          dismissal contract. */}
       {commandPaletteOpen && (
-        <div
-          className="ge-command-overlay fixed inset-0 z-50 flex items-start justify-center bg-slate-950/70 pt-24"
+        <motion.div
+          className="fixed inset-0 z-50 flex items-start justify-center bg-[#18243A]/45 pt-24"
           onClick={() => setCommandPaletteOpen(false)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15 }}
         >
-          <div
+          <motion.div
             role="dialog"
             aria-label="Command palette"
-            className="ge-command-panel w-full max-w-2xl rounded-2xl border border-white/10 bg-[#0F172A] shadow-2xl shadow-blue-950/30 p-4"
+            className="w-full max-w-2xl rounded-3xl border border-[#E9EDF2] bg-white shadow-[0_0_0_1px_rgba(4,23,43,0.05),0_20px_60px_rgba(0,0,0,0.12)] p-4"
             onClick={(event) => event.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.97, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
           >
-            <div className="ge-command-input-row flex items-center gap-3 rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-gray-300">
-              <span className="text-gray-500">⌘</span>
+            <div className="flex items-center gap-3 rounded-2xl border border-[#E9EDF2] bg-[#F1F5F9] px-3 py-2 text-sm text-[#18243A]">
+              <span className="text-[#9DAFC5]">⌘</span>
               <input
                 autoFocus
                 aria-label="Command palette search"
                 placeholder="Search incidents, cameras, zones, reports..."
-                className="w-full bg-transparent text-sm text-white placeholder-gray-500 outline-none"
+                className="w-full bg-transparent text-sm text-[#18243A] placeholder-[#9DAFC5] outline-none"
               />
             </div>
-            <div className="mt-4 space-y-2 text-sm text-gray-300">
+            <div className="mt-4 space-y-2 text-sm text-[#18243A]">
               {[
                 ['Open Overview', '/'],
                 ['Open Live Streams', '/live'],
@@ -130,15 +156,15 @@ export function AppLayout({ children }: AppLayoutProps) {
                     }
                     navigate(route);
                   }}
-                  className="ge-command-item flex w-full items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-left hover:border-blue-500/40 hover:bg-blue-500/10"
+                  className="flex w-full items-center justify-between rounded-2xl border border-[#E9EDF2] bg-white px-3 py-2 text-left transition-colors hover:border-[rgba(47,82,214,0.3)] hover:bg-[rgba(234,240,255,0.35)]"
                 >
                   <span>{label}</span>
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500">{route}</span>
+                  <span className="text-[10px] uppercase tracking-[0.18em] text-[#9DAFC5]">{route}</span>
                 </button>
               ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
 
       <CopilotChatDrawer isOpen={copilotOpen} onClose={() => setCopilotOpen(false)} />

@@ -1,0 +1,770 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   GuardianEye — marketing landing page.
+
+   Everything in this file is scoped under `.ge-landing` so it can never
+   leak onto the existing product surface (dashboard/sidebar/etc share
+   src/index.css, not this file). Colors and type reuse the app's own
+   design tokens (--color-accent, --font-signifier, ...) defined in
+   src/index.css — no new palette, no new webfont import.
+   ───────────────────────────────────────────────────────────────────── */
+
+.ge-landing {
+  position: relative;
+  width: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sohne);
+  overflow-x: hidden;
+}
+
+.ge-landing * {
+  box-sizing: border-box;
+}
+
+.ge-landing a,
+.ge-landing button {
+  font-family: inherit;
+}
+
+/* Small technical/mono-flavored readout used for eyebrows, telemetry and
+   status labels — reuses the app's own rounded sans (no second webfont)
+   at a tightened tracking so it still reads as "instrumentation" text. */
+.ge-mono {
+  font-family: var(--font-sohne);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ───────────────────────────── HERO ───────────────────────────────── */
+
+.ge-hero {
+  position: relative;
+  min-height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+}
+
+.ge-hero-image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/landing/warehouse-hero.jpg');
+  background-size: cover;
+  background-position: center center;
+  /* The source photo has a mock UI (logo/headline/card/strip) baked into
+     its pixels. Flattening it — desaturating, lifting brightness, cutting
+     contrast — turns that baked-in chrome into a faint, illegible texture
+     instead of a second, slightly-offset copy of the real UI drawn on top
+     of it. The wash below does the rest of that work. */
+  filter: grayscale(0.45) brightness(1.12) contrast(0.88) blur(2.5px);
+  transform: scale(1.015);
+  animation: ge-hero-breathe 16s ease-in-out infinite alternate;
+}
+
+@keyframes ge-hero-breathe {
+  from { transform: scale(1.015); }
+  to   { transform: scale(1.04); }
+}
+
+/* The source photo already carries a baked-in mock layout (logo, headline,
+   card, strip). This wash sits above it at a high, fairly flat opacity so
+   that pre-rendered text/graphics read only as a faint texture — the real
+   nav/headline/card/strip below are the actual interactive UI — while the
+   warehouse itself (racking, forklift, floor) still shows through. */
+.ge-hero-wash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(248, 250, 252, 0.97) 0%,
+    rgba(248, 250, 252, 0.95) 40%,
+    rgba(248, 250, 252, 0.92) 70%,
+    rgba(248, 250, 252, 0.9) 100%
+  );
+  pointer-events: none;
+}
+
+.ge-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(47, 82, 214, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 82, 214, 0.05) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: linear-gradient(90deg, black 0%, transparent 70%);
+  -webkit-mask-image: linear-gradient(90deg, black 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ─── nav ─── */
+
+.ge-hero-nav {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px clamp(20px, 5vw, 56px) 0;
+}
+
+.ge-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ge-brand-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--accent-bg);
+  color: var(--color-accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ge-brand-name {
+  font-family: var(--font-signifier);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.ge-brand-name em {
+  font-style: normal;
+  color: var(--color-accent-ink);
+}
+
+.ge-brand-tagline {
+  margin-top: 3px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+}
+
+.ge-nav-status {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+.ge-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22b573;
+  box-shadow: 0 0 0 4px rgba(34, 181, 115, 0.12);
+  animation: ge-pulse 2s infinite;
+}
+.ge-status-dot[data-state='DEGRADED'],
+.ge-status-dot[data-state='RECONNECTING'] { background: #d97706; box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.12); }
+.ge-status-dot[data-state='OFFLINE'] { background: #b91c1c; box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.12); animation: none; }
+
+@keyframes ge-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+.ge-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(24, 36, 58, 0.16);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 11px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+.ge-nav-cta:hover { background: #fff; border-color: var(--color-accent); transform: translateY(-2px); }
+.ge-nav-cta:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* ─── content ─── */
+
+.ge-hero-content {
+  position: relative;
+  z-index: 5;
+  padding: clamp(56px, 12vh, 120px) clamp(20px, 5vw, 56px) 0;
+  max-width: 620px;
+}
+
+.ge-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--text-secondary);
+  margin-bottom: 22px;
+}
+
+.ge-eyebrow-line {
+  width: 36px;
+  height: 1px;
+  background: var(--color-accent);
+}
+
+.ge-hero-content h1 {
+  margin: 0 0 20px;
+  font-family: var(--font-signifier);
+  font-weight: 800;
+  font-size: clamp(38px, 5.4vw, 74px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.ge-hero-content h1 em {
+  font-style: normal;
+  color: var(--color-accent-ink);
+}
+
+.ge-hero-description {
+  max-width: 420px;
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0 0 30px;
+}
+
+.ge-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ge-btn-primary,
+.ge-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease, border-color 200ms ease;
+}
+
+.ge-btn-primary {
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: #fff;
+}
+.ge-btn-primary:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(93, 135, 255, 0.32); }
+.ge-btn-primary:focus-visible { outline: 2px solid var(--color-accent-ink); outline-offset: 2px; }
+
+.ge-btn-secondary {
+  border: 1px solid rgba(24, 36, 58, 0.18);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text-primary);
+  backdrop-filter: blur(8px);
+}
+.ge-btn-secondary:hover { background: #fff; transform: translateY(-3px); }
+.ge-btn-secondary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.ge-btn-secondary[aria-expanded='true'] { border-color: var(--color-accent); color: var(--color-accent-ink); }
+
+/* ─── camera / stats card ─── */
+
+.ge-camera-card {
+  position: absolute;
+  z-index: 5;
+  top: clamp(96px, 18vh, 168px);
+  right: clamp(20px, 5vw, 56px);
+  width: 232px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 60px rgba(24, 36, 58, 0.1);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+.ge-camera-card:hover { transform: translateY(-3px); box-shadow: 0 26px 70px rgba(24, 36, 58, 0.14); }
+
+.ge-camera-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-secondary);
+}
+
+.ge-camera-title {
+  margin-top: 8px;
+  font-family: var(--font-signifier);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.ge-camera-data {
+  display: flex;
+  gap: 22px;
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid var(--border-color);
+}
+
+.ge-camera-data div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ge-camera-data small {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.ge-camera-data strong {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+}
+
+/* ─── telemetry row ─── */
+
+.ge-telemetry {
+  position: absolute;
+  z-index: 5;
+  right: clamp(20px, 5vw, 56px);
+  bottom: 158px;
+  display: none;
+  gap: 26px;
+}
+
+.ge-telemetry div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ge-telemetry span {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.ge-telemetry strong {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+}
+
+/* ─── intelligence label ─── */
+
+.ge-intelligence-label {
+  position: absolute;
+  z-index: 5;
+  right: clamp(20px, 5vw, 56px);
+  top: 50%;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--text-secondary);
+}
+
+.ge-intelligence-line {
+  width: 34px;
+  height: 1px;
+  background: var(--color-accent);
+}
+
+/* ─── bottom strip ─── */
+
+.ge-bottom-strip {
+  position: relative;
+  z-index: 5;
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 20px clamp(20px, 5vw, 56px) clamp(24px, 4vh, 34px);
+  border-top: 1px solid rgba(24, 36, 58, 0.1);
+}
+
+.ge-strip-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 150px;
+}
+
+.ge-strip-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid rgba(93, 135, 255, 0.28);
+  color: var(--color-accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ge-strip-item strong {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-primary);
+}
+
+.ge-strip-item span {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.ge-strip-divider {
+  width: 1px;
+  height: 30px;
+  background: rgba(24, 36, 58, 0.12);
+}
+
+/* ─── scroll indicator ─── */
+
+.ge-scroll-indicator {
+  position: absolute;
+  z-index: 5;
+  right: 22px;
+  top: 50%;
+  transform: rotate(90deg) translateX(50%);
+  display: none;
+  align-items: center;
+  gap: 13px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+}
+
+.ge-scroll-line {
+  position: relative;
+  width: 46px;
+  height: 1px;
+  background: rgba(24, 36, 58, 0.18);
+  overflow: hidden;
+}
+
+.ge-scroll-line i {
+  position: absolute;
+  left: -18px;
+  top: 0;
+  width: 18px;
+  height: 1px;
+  background: var(--color-accent);
+  animation: ge-scroll-move 2.1s infinite;
+}
+
+@keyframes ge-scroll-move {
+  from { left: -18px; }
+  to   { left: 46px; }
+}
+
+@media (min-width: 860px) {
+  .ge-nav-status,
+  .ge-telemetry,
+  .ge-intelligence-label,
+  .ge-scroll-indicator { display: flex; }
+}
+
+/* ───────────────────────── WATCH-SYSTEM DEMO ──────────────────────── */
+
+.ge-demo {
+  position: relative;
+  z-index: 5;
+  margin: 0 clamp(20px, 5vw, 56px) 28px;
+  padding: 18px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  max-width: 780px;
+}
+
+.ge-demo-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: color 200ms ease, border-color 200ms ease, background 200ms ease;
+}
+
+.ge-demo-step.is-active {
+  color: var(--color-accent-ink);
+  border-color: rgba(93, 135, 255, 0.3);
+  background: var(--accent-bg);
+}
+
+.ge-demo-arrow { color: var(--text-muted); }
+
+/* ─────────────────────────── SECTIONS ─────────────────────────────── */
+
+.ge-section {
+  padding: clamp(56px, 9vh, 96px) clamp(20px, 5vw, 56px);
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.ge-section-head {
+  max-width: 620px;
+  margin: 0 0 40px;
+}
+
+.ge-section-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+}
+
+.ge-section-head h2 {
+  font-family: var(--font-signifier);
+  font-weight: 800;
+  font-size: clamp(26px, 3.2vw, 38px);
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+}
+
+.ge-section-head p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* how it sees — flow row */
+
+.ge-flow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.ge-flow-step {
+  padding: 26px 20px;
+  border-right: 1px solid var(--border-color);
+  position: relative;
+}
+.ge-flow-step:last-child { border-right: none; }
+
+.ge-flow-index {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.ge-flow-step h3 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-accent-ink);
+  margin: 0 0 8px;
+}
+
+.ge-flow-step p {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* capability tiles */
+
+.ge-capability-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.ge-capability-card {
+  padding: 22px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  background: var(--bg-card);
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+}
+.ge-capability-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(47, 82, 214, 0.3);
+  box-shadow: 0 16px 40px rgba(24, 36, 58, 0.08);
+}
+
+.ge-capability-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--accent-bg);
+  color: var(--color-accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.ge-capability-card h3 {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.ge-capability-card p {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* platform CTA */
+
+.ge-platform-cta {
+  border-radius: 32px;
+  background: linear-gradient(120deg, #eef3ff 0%, #f8fafc 100%);
+  border: 1px solid var(--border-color);
+  padding: clamp(40px, 7vh, 72px) clamp(24px, 6vw, 72px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.ge-platform-cta h2 {
+  font-family: var(--font-signifier);
+  font-weight: 800;
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0 0 10px;
+  max-width: 460px;
+}
+
+.ge-platform-cta p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 420px;
+}
+
+/* footer */
+
+.ge-footer {
+  padding: 26px clamp(20px, 5vw, 56px) 40px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--border-color);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.ge-footer strong { color: var(--text-secondary); }
+
+/* ─────────────────────────── RESPONSIVE ────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .ge-capability-grid { grid-template-columns: repeat(2, 1fr); }
+  .ge-flow { grid-template-columns: repeat(3, 1fr); }
+  .ge-flow-step:nth-child(3) { border-right: none; }
+  .ge-flow-step:nth-child(n+4) { border-top: 1px solid var(--border-color); }
+}
+
+@media (max-width: 860px) {
+  .ge-hero-content { max-width: 68vw; }
+  .ge-camera-card { top: auto; bottom: 190px; right: 5vw; width: 210px; }
+}
+
+@media (max-width: 640px) {
+  .ge-hero { min-height: 100svh; }
+  .ge-hero-image { background-position: 68% center; }
+  .ge-hero-wash {
+    background: linear-gradient(
+      180deg,
+      rgba(248, 250, 252, 0.97) 0%,
+      rgba(248, 250, 252, 0.93) 45%,
+      rgba(248, 250, 252, 0.88) 100%
+    );
+  }
+  .ge-hero-nav { padding: 18px 20px 0; }
+  .ge-hero-content { max-width: 100%; padding-top: 44px; }
+  .ge-hero-content h1 { font-size: clamp(36px, 12vw, 52px); }
+  .ge-hero-description { max-width: 320px; }
+  .ge-hero-actions { flex-direction: column; align-items: stretch; }
+  .ge-hero-actions .ge-btn-primary,
+  .ge-hero-actions .ge-btn-secondary { justify-content: center; }
+  .ge-camera-card { position: relative; top: auto; bottom: auto; right: auto; margin: 18px 20px 0; width: auto; }
+  .ge-bottom-strip { gap: 14px 22px; padding-top: 16px; margin-top: 28px; }
+  .ge-strip-divider { display: none; }
+  .ge-strip-item { min-width: 40%; }
+  .ge-flow { grid-template-columns: 1fr; }
+  .ge-flow-step { border-right: none; }
+  .ge-flow-step:not(:first-child) { border-top: 1px solid var(--border-color); }
+  .ge-capability-grid { grid-template-columns: 1fr; }
+  .ge-platform-cta { text-align: left; }
+}
+
+/* ─────────────────────────── MOTION SAFETY ─────────────────────────── */
+/* src/index.css already zeroes all animation/transition durations under
+   prefers-reduced-motion globally; this is a defensive, explicit repeat
+   scoped to the landing page so its intent doesn't depend on that rule
+   living elsewhere. */
+@media (prefers-reduced-motion: reduce) {
+  .ge-landing, .ge-landing * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

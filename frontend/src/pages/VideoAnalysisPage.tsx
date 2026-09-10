@@ -134,10 +134,10 @@ export const VideoAnalysisPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">
+          <h1 className="text-xl font-bold text-[#18243A] tracking-tight">
             Video Intelligence & Anomaly Forensic Replay
           </h1>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-[#6F7F98]">
             Frame-by-frame entity perception, Kalman speed vectors, and state machine transition histories.
           </p>
         </div>
@@ -147,7 +147,7 @@ export const VideoAnalysisPage: React.FC = () => {
             <button
               onClick={handleTriggerAnalysis}
               disabled={isProcessing}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/40 text-xs font-semibold hover:bg-emerald-600/30 transition-all"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(21,128,61,0.08)] text-[#15803d] border border-[rgba(21,128,61,0.3)] text-xs font-semibold hover:bg-[rgba(21,128,61,0.14)] transition-all"
             >
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
               <span>{isProcessing ? 'Processing...' : 'Run AI Analysis'}</span>
@@ -156,7 +156,7 @@ export const VideoAnalysisPage: React.FC = () => {
 
           <button
             onClick={() => setUploadModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600/30 text-blue-400 border border-blue-500/40 text-xs font-semibold hover:bg-blue-600/50 transition-all glow-accent"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#5D87FF] text-white text-xs font-semibold hover:bg-[#3F6AE0] transition-all"
           >
             <UploadCloud className="w-4 h-4" />
             <span>Upload New Stream</span>
@@ -168,19 +168,20 @@ export const VideoAnalysisPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Interactive Video Overlay Canvas & Scrubber */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="glass-panel rounded-xl overflow-hidden border border-white/10">
-            {/* Top Video Toolbar */}
-            <div className="px-4 py-3 bg-black/60 border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-mono">
-                <FileVideo className="w-4 h-4 text-blue-400" />
-                <span className="text-white font-semibold">
+          <div className="glass-panel rounded-xl overflow-hidden border border-[#E9EDF2]">
+            {/* Top Video Toolbar — sits above the frame, not over it, so it
+                follows the page's light chrome rather than staying dark. */}
+            <div className="px-4 py-3 bg-[#F8FAFC] border-b border-[#E9EDF2] flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs">
+                <FileVideo className="w-4 h-4 text-[#2F52D6]" />
+                <span className="text-[#18243A] font-semibold">
                   {selectedVideo?.filename ?? 'No video selected'}
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-[11px] font-mono text-gray-400">
+                <span className="text-[11px] text-[#6F7F98]">
                   STATUS:{' '}
-                  <strong className="text-white">
+                  <strong className="text-[#18243A]">
                     {selectedVideo?.status ?? 'UNKNOWN'}
                   </strong>
                 </span>
@@ -201,13 +202,15 @@ export const VideoAnalysisPage: React.FC = () => {
                   onPause={() => setIsPlaying(false)}
                 />
               ) : (
-                <div className="text-xs text-gray-500 font-mono">Select a video from the library to load</div>
+                <div className="text-xs text-[#9DAFC5]">Select a video from the library to load</div>
               )}
 
               {/* Scanline Animation */}
               <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent animate-scanline pointer-events-none" />
 
-              {/* Dynamic Bounding Boxes */}
+              {/* Dynamic Bounding Boxes — drawn over the video frame itself,
+                  so these stay bright/high-contrast against arbitrary
+                  footage rather than following the page's light palette. */}
               {activeTracksAtCurrentTime.map((box, idx) => (
                 <div
                   key={idx}
@@ -223,23 +226,25 @@ export const VideoAnalysisPage: React.FC = () => {
                     height: `${Math.max(box.height, 5)}%`,
                   }}
                 >
-                  <div className="text-[9px] font-mono font-bold text-white flex justify-between bg-black/70 px-1 rounded">
+                  <div className="text-[9px] font-bold text-gray-100 flex justify-between bg-black/70 px-1 rounded">
                     <span>{box.className.toUpperCase()} #{box.trackId}</span>
                     <span>{box.velocity.toFixed(1)} px/s</span>
                   </div>
                 </div>
               ))}
 
-              {/* HUD Telemetry Overlay */}
-              <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px] font-mono space-y-0.5 pointer-events-none">
+              {/* HUD Telemetry Overlay — same reasoning: overlays the video,
+                  stays dark regardless of page theme. */}
+              <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px] space-y-0.5 pointer-events-none">
                 <div className="text-blue-400 font-bold">DETECTION LAYER: ACTIVE</div>
                 <div className="text-gray-300">ACTIVE TRACKS: {tracks.length}</div>
                 <div className="text-amber-400">BEHAVIOUR EVENTS: {behaviours.length}</div>
               </div>
             </div>
 
-            {/* Playback Controls & Scrubber */}
-            <div className="p-4 bg-[#0B0F17] space-y-3">
+            {/* Playback Controls & Scrubber — below the frame, so this
+                follows the page's light chrome like the toolbar above it. */}
+            <div className="p-4 bg-[#F8FAFC] space-y-3">
               <input
                 type="range"
                 aria-label="Seek video frame"
@@ -252,10 +257,10 @@ export const VideoAnalysisPage: React.FC = () => {
                   setCurrentTime(val);
                   if (videoRef.current) videoRef.current.currentTime = val;
                 }}
-                className="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-1.5 bg-[#E9EDF2] rounded-lg appearance-none cursor-pointer accent-[#5D87FF]"
               />
 
-              <div className="flex items-center justify-between text-xs font-mono">
+              <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -265,7 +270,7 @@ export const VideoAnalysisPage: React.FC = () => {
                       if (isPlaying) videoRef.current.pause();
                       else videoRef.current.play();
                     }}
-                    className="p-2 rounded-lg bg-blue-600/30 text-blue-400 border border-blue-500/40 hover:bg-blue-600/50"
+                    className="p-2 rounded-lg bg-[#5D87FF] text-white hover:bg-[#3F6AE0]"
                   >
                     {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                   </button>
@@ -277,27 +282,27 @@ export const VideoAnalysisPage: React.FC = () => {
                       videoRef.current.currentTime = 0;
                       setCurrentTime(0);
                     }}
-                    className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-white"
+                    className="p-2 rounded-lg bg-white border border-[#E9EDF2] text-[#6F7F98] hover:text-[#18243A]"
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
-                  <span className="text-gray-400">
+                  <span className="text-[#6F7F98]">
                     {currentTime.toFixed(2)}s / {(duration || selectedVideo?.duration_seconds || 0).toFixed(2)}s
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-gray-400">ACTIVE EVENTS:</span>
+                  <span className="text-[11px] text-[#6F7F98]">ACTIVE EVENTS:</span>
                   {behaviours.slice(0, 2).map((b, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/40 font-bold"
+                      className="px-2 py-0.5 rounded bg-[rgba(185,28,28,0.1)] text-[#b91c1c] border border-[rgba(185,28,28,0.3)] font-bold"
                     >
                       {b.behaviour_type}
                     </span>
                   ))}
                   {behaviours.length === 0 && (
-                    <span className="text-[11px] text-emerald-400 font-bold">NORMAL ACTIVITY</span>
+                    <span className="text-[11px] text-[#15803d] font-bold">NORMAL ACTIVITY</span>
                   )}
                 </div>
               </div>
@@ -308,7 +313,7 @@ export const VideoAnalysisPage: React.FC = () => {
         {/* Right Col: Video Library & Processing Progress */}
         <div className="space-y-4">
           <div className="glass-panel rounded-xl p-5 space-y-3">
-            <h3 className="text-xs font-bold font-mono text-gray-300 uppercase tracking-wider">
+            <h3 className="text-xs font-bold text-[#334155] uppercase tracking-wider">
               Warehouse CCTV Stream Library ({videos.length} Ingested)
             </h3>
 
@@ -319,25 +324,25 @@ export const VideoAnalysisPage: React.FC = () => {
                   onClick={() => setSelectedVideoId(vid.id)}
                   className={`p-3 rounded-lg border cursor-pointer transition-all ${
                     selectedVideo?.id === vid.id
-                      ? 'bg-blue-600/20 border-blue-500 text-white'
-                      : 'bg-black/30 border-white/5 text-gray-300 hover:border-white/20'
+                      ? 'bg-[#5D87FF]/10 border-[#5D87FF] text-[#18243A]'
+                      : 'bg-[#F8FAFC] border-[#E9EDF2] text-[#334155] hover:border-[#CBD5E1]'
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="truncate max-w-[200px]">{vid.filename}</span>
                     <span
-                      className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
                         vid.status === 'COMPLETED'
-                          ? 'bg-emerald-500/20 text-emerald-300'
+                          ? 'bg-[rgba(21,128,61,0.1)] text-[#15803d]'
                           : vid.status === 'PROCESSING'
-                          ? 'bg-blue-500/20 text-blue-300 animate-pulse'
-                          : 'bg-amber-500/20 text-amber-300'
+                          ? 'bg-[#5D87FF]/20 text-[#2F52D6] animate-pulse'
+                          : 'bg-[rgba(146,64,14,0.1)] text-[#92400e]'
                       }`}
                     >
                       {vid.status}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 mt-2">
+                  <div className="flex items-center justify-between text-[10px] text-[#6F7F98] mt-2">
                     <span>{vid.duration_seconds}s · {vid.fps} FPS</span>
                     <span>{(vid.file_size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
                   </div>
@@ -350,16 +355,16 @@ export const VideoAnalysisPage: React.FC = () => {
 
       {/* Upload Video Stream Modal */}
       {uploadModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel rounded-2xl border border-white/10 p-6 max-w-md w-full space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="fixed inset-0 bg-[#18243A]/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="rounded-2xl bg-white border border-[#E9EDF2] shadow-[0_0_0_1px_rgba(4,23,43,0.05),0_20px_60px_rgba(0,0,0,0.12)] p-6 max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E9EDF2] pb-3">
               <div className="flex items-center gap-2">
-                <UploadCloud className="w-5 h-5 text-blue-400" />
-                <h2 className="text-base font-bold text-white">Upload Warehouse Footage</h2>
+                <UploadCloud className="w-5 h-5 text-[#2F52D6]" />
+                <h2 className="text-base font-bold text-[#18243A]">Upload Warehouse Footage</h2>
               </div>
               <button
                 onClick={() => setUploadModalOpen(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-[#6F7F98] hover:text-[#18243A]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -367,13 +372,13 @@ export const VideoAnalysisPage: React.FC = () => {
 
             <form onSubmit={handleFileUpload} className="space-y-4">
               <div className="space-y-2">
-                <label className="block text-xs font-mono text-gray-300">Select Video File (MP4, AVI, MOV)</label>
+                <label className="block text-xs text-[#334155]">Select Video File (MP4, AVI, MOV)</label>
                 <input
                   type="file"
                   accept="video/*"
                   onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                   required
-                  className="w-full text-xs text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                  className="w-full text-xs text-[#334155] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#5D87FF] file:text-white hover:file:bg-[#3F6AE0]"
                 />
               </div>
 
@@ -381,14 +386,14 @@ export const VideoAnalysisPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setUploadModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-white/5 text-gray-400 text-xs font-semibold hover:text-white"
+                  className="px-4 py-2 rounded-lg bg-[#F1F5F9] text-[#6F7F98] text-xs font-semibold hover:text-[#18243A]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={uploading || !uploadFile}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-500 disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5D87FF] text-white text-xs font-semibold hover:bg-[#3F6AE0] disabled:opacity-50"
                 >
                   {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
                   <span>{uploading ? 'Uploading & Analyzing...' : 'Upload & Start AI'}</span>

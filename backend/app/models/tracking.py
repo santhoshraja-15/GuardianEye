@@ -48,4 +48,24 @@ class TrackPoint(Base):
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     zone_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
+    # Canonical spatial anchor — see ai/spatial/coordinate_transform.py.
+    # anchor_x/y: the object's ground-contact point in VIDEO PIXEL space
+    # (bottom-center of bbox for people/forklifts/equipment, centroid for
+    # everything else) — the point actually used for zone/world mapping,
+    # as opposed to centroid_x/y above which is the raw bbox center kept
+    # for backward compatibility with existing consumers.
+    anchor_x: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    anchor_y: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # normalized_x/y: anchor point / (video width, height) -> 0..1.
+    normalized_x: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    normalized_y: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # world_x/y: best-effort real-world position — see
+    # coordinate_transform.world_position. world_position_quality records
+    # whether this came from a real per-camera calibration or an
+    # uncalibrated linear estimate, so nothing downstream presents an
+    # estimate with the same confidence as a calibrated position.
+    world_x: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    world_y: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    world_position_quality: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+
     track: Mapped[Track] = relationship("Track", back_populates="track_points")

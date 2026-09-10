@@ -9,7 +9,10 @@ export type RealtimeEventName =
   | 'ALERT_CREATED'
   | 'ALERT_ACKNOWLEDGED'
   | 'INCIDENT_STATUS_CHANGED'
-  | 'INCIDENT_CREATED';
+  | 'INCIDENT_CREATED'
+  | 'VIDEO_PROGRESS'
+  | 'VIDEO_COMPLETED'
+  | 'SPATIAL_EVENT_CREATED';
 
 export interface RealtimeEventEnvelope {
   event?: string;
@@ -208,5 +211,17 @@ export function routeRealtimeEvent(
 
   if (eventName === 'INCIDENT_CREATED' || eventName === 'INCIDENT_STATUS_CHANGED') {
     void queryClient.invalidateQueries({ queryKey: ['incidents'] });
+    return;
+  }
+
+  if (eventName === 'VIDEO_COMPLETED') {
+    void queryClient.invalidateQueries({ queryKey: ['videos'] });
+    void queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+    return;
+  }
+
+  if (eventName === 'SPATIAL_EVENT_CREATED') {
+    void queryClient.invalidateQueries({ queryKey: ['digital-twin'] });
+    void queryClient.invalidateQueries({ queryKey: ['spatial-events'] });
   }
 }

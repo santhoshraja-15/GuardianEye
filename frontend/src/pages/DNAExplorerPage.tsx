@@ -80,10 +80,10 @@ export const DNAExplorerPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">
+          <h1 className="text-xl font-bold text-[#18243A] tracking-tight">
             Behaviour DNA &amp; Kinematic Anomaly Fingerprints
           </h1>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-[#6F7F98]">
             32-dimensional normalized feature vectors capturing velocity, state durations, interactions, and zone risk dynamics.
           </p>
         </div>
@@ -93,7 +93,7 @@ export const DNAExplorerPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Col: Sample DNA Fingerprint Selector */}
         <div className="space-y-3">
-          <div className="text-xs font-mono uppercase tracking-wider text-gray-400">
+          <div className="text-xs uppercase tracking-wider text-[#6F7F98]">
             Observed Incident Fingerprints
           </div>
           {sampleDNAs.map((dna) => (
@@ -102,18 +102,18 @@ export const DNAExplorerPage: React.FC = () => {
               onClick={() => setSelectedDNA(dna)}
               className={`glass-panel rounded-xl p-4 cursor-pointer border transition-all ${
                 selectedDNA.id === dna.id
-                  ? 'border-blue-500 shadow-xl shadow-blue-500/10'
-                  : 'border-white/10 hover:border-white/20'
+                  ? 'border-[#5D87FF] shadow-xl shadow-[#5D87FF]/10'
+                  : 'border-[#E9EDF2] hover:border-[#CBD5E1]'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs font-bold text-blue-400">{dna.id}</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">
+                <span className="text-xs font-bold text-[#2F52D6]">{dna.id}</span>
+                <span className="px-2 py-0.5 rounded text-[10px] bg-[#5D87FF]/15 text-[#2F52D6] border border-[#5D87FF]/30 font-bold">
                   32D VECTOR
                 </span>
               </div>
-              <div className="text-xs font-semibold text-white mt-1.5">{dna.label}</div>
-              <div className="text-[10px] font-mono text-gray-400 mt-2 truncate bg-black/40 p-1.5 rounded">
+              <div className="text-xs font-semibold text-[#18243A] mt-1.5">{dna.label}</div>
+              <div className="text-[10px] text-[#6F7F98] mt-2 truncate bg-[#F8FAFC] p-1.5 rounded">
                 {dna.signature}
               </div>
             </div>
@@ -123,14 +123,14 @@ export const DNAExplorerPage: React.FC = () => {
         {/* Center & Right: 32D Feature Vector Bar & Similarity Breakdown */}
         <div className="lg:col-span-2 space-y-6">
           <div className="glass-panel rounded-xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between border-b border-[#E9EDF2] pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white">{selectedDNA.label}</h3>
-                <div className="text-xs font-mono text-emerald-400 mt-0.5">
+                <h3 className="text-sm font-bold text-[#18243A]">{selectedDNA.label}</h3>
+                <div className="text-xs text-[#15803d] mt-0.5">
                   SEQUENCE: {selectedDNA.signature}
                 </div>
               </div>
-              <span className="px-3 py-1 rounded bg-blue-500/20 border border-blue-500/30 text-blue-300 font-mono text-xs font-bold">
+              <span className="px-3 py-1 rounded bg-[#5D87FF]/15 border border-[#5D87FF]/30 text-[#2F52D6] text-xs font-bold">
                 UNIT NORMALIZED
               </span>
             </div>
@@ -139,18 +139,18 @@ export const DNAExplorerPage: React.FC = () => {
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
-                  <XAxis dataKey="feature" stroke="#4B5563" fontSize={9} interval={0} angle={-45} textAnchor="end" height={60} />
-                  <YAxis stroke="#4B5563" fontSize={10} domain={[0, 1]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E9EDF2" vertical={false} />
+                  <XAxis dataKey="feature" stroke="#9DAFC5" fontSize={9} interval={0} angle={-45} textAnchor="end" height={60} />
+                  <YAxis stroke="#9DAFC5" fontSize={10} domain={[0, 1]} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#111827',
-                      borderColor: '#374151',
+                      backgroundColor: '#ffffff',
+                      borderColor: '#E9EDF2',
                       borderRadius: '8px',
-                      fontSize: '11px',
+                      fontSize: 11,
                     }}
                   />
-                  <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="value" fill="#5D87FF" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -158,35 +158,35 @@ export const DNAExplorerPage: React.FC = () => {
 
           {/* Golden Standard Cosine Similarity Matching */}
           <div className="glass-panel rounded-xl p-5 space-y-3">
-            <h4 className="text-xs font-bold font-mono text-gray-300 uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-[#334155] uppercase tracking-wider">
               Golden Anomaly Template Cosine Match Scores
             </h4>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono">
-              <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-1">
-                <div className="text-[10px] text-gray-400">B01_DROP</div>
-                <div className="text-lg font-bold text-red-400">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="p-3 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] space-y-1">
+                <div className="text-[10px] text-[#6F7F98]">B01_DROP</div>
+                <div className="text-lg font-bold text-[#b91c1c]">
                   {(selectedDNA.similarityDrop * 100).toFixed(1)}%
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-1">
-                <div className="text-[10px] text-gray-400">B02_DRAG</div>
-                <div className="text-lg font-bold text-amber-400">
+              <div className="p-3 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] space-y-1">
+                <div className="text-[10px] text-[#6F7F98]">B02_DRAG</div>
+                <div className="text-lg font-bold text-[#92400e]">
                   {(selectedDNA.similarityDrag * 100).toFixed(1)}%
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-1">
-                <div className="text-[10px] text-gray-400">B03_THROW</div>
-                <div className="text-lg font-bold text-purple-400">
+              <div className="p-3 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] space-y-1">
+                <div className="text-[10px] text-[#6F7F98]">B03_THROW</div>
+                <div className="text-lg font-bold text-[#2F52D6]">
                   {(selectedDNA.similarityThrow * 100).toFixed(1)}%
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-1">
-                <div className="text-[10px] text-gray-400">B11_STEP</div>
-                <div className="text-lg font-bold text-blue-400">
+              <div className="p-3 rounded-lg bg-[#F8FAFC] border border-[#E9EDF2] space-y-1">
+                <div className="text-[10px] text-[#6F7F98]">B11_STEP</div>
+                <div className="text-lg font-bold text-[#0369A1]">
                   {(selectedDNA.similarityStep * 100).toFixed(1)}%
                 </div>
               </div>

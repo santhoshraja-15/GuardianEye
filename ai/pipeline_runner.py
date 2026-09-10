@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from ai.behaviour.behaviour_dna import BehaviourDNAEncoder
 from ai.behaviour.behaviour_engine import BehaviourEngine
 from ai.behaviour.behaviour_schemas import BehaviourType, DetectedBehaviour
-from ai.context.context_enricher import ContextEnricher, ProductContext
+from ai.context.context_enricher import ContextEnricher
 from ai.damage.damage_predictor import DamagePredictor
 from ai.evidence.evidence_generator import EvidenceGenerator
 from ai.interaction.interaction_detector import InteractionDetector
@@ -27,6 +27,8 @@ from ai.prevention.prevention_engine import PreventionEngine
 from ai.preprocessing.frame_extractor import FrameExtractor, ProcessedFrame
 from ai.risk.risk_engine import DeterministicRiskEngine
 from ai.risk.risk_schemas import RiskEvaluationResult, RiskLevel
+from ai.spatial.coordinate_transform import normalize_zone_polygons
+from ai.spatial.event_engine import ProximityEngine, SpatialEventCandidate, ZoneTransitionEngine
 from ai.spatial.zone_geometry import Point, PolygonZone
 from ai.temporal.state_machine import TemporalStateMachine
 from ai.tracking.byte_tracker import ByteTracker
@@ -43,11 +45,13 @@ from backend.app.models.warehouse import Camera, Warehouse, Zone
 from backend.app.schemas.incident import IncidentCreateRequest
 from backend.app.services.alert_service import alert_service
 from backend.app.services.behaviour_service import behaviour_service
+from backend.app.services.calibration_service import calibration_service
 from backend.app.services.event_bus import event_bus
 from backend.app.services.evidence_service import evidence_service
 from backend.app.services.incident_service import IncidentService
+from backend.app.services.spatial_event_service import spatial_event_service
 from backend.app.services.storage_service import storage_service
-from backend.app.services.tracking_service import tracking_service
+from backend.app.services.tracking_service import SpatialContext, tracking_service
 
 
 class AIPipelineOrchestrator:
@@ -67,74 +71,68 @@ class AIPipelineOrchestrator:
         self.interaction_detector = InteractionDetector(distance_threshold_px=100.0)
 
     def _load_spatial_zones(self, db: Session, warehouse_id: Optional[str] = None) -> Dict[str, PolygonZone]:
-        """Load PolygonZones from DB or instantiate default warehouse zones."""
+        """Load PolygonZones from DB (or instantiate default warehouse
+        zones when none are configured), then normalize every polygon
+        into a shared 0-1 plane.
+
+        Zone.polygon_coordinates are authored in an arbitrary,
+        undeclared plane (this project's seed data uses ~0-1000 units
+        with no physical meaning) that is NOT the same space as a
+        track's video-pixel position. Comparing them directly — which
+        is what every zone-matching call site did before this method
+        normalized its output — is the exact "video coordinates and
+        world coordinates aren't explicitly separated" bug the spatial
+        architecture audit flagged; two of the eight implemented
+        behaviour rules (drag/wet-floor, zone-mismatch placement) and
+        the new zone-transition/proximity event engines all rely on
+        this method's output being safe to compare against a track's
+        own normalize()'d position (see ai.spatial.coordinate_transform
+        and behaviour_engine.evaluate_frame's docstring)."""
         query = db.query(Zone)
         if warehouse_id:
             query = query.filter(Zone.warehouse_id == warehouse_id)
         db_zones = query.all()
 
-        zones: Dict[str, PolygonZone] = {}
+        raw_polygons: Dict[str, List[tuple]] = {}
+        zone_meta: Dict[str, Zone] = {}
         if db_zones:
             for z in db_zones:
                 try:
                     coords = json.loads(z.polygon_coordinates)
-                    points = [Point(c[0], c[1]) for c in coords]
+                    raw_polygons[z.code] = [(float(c[0]), float(c[1])) for c in coords]
                 except Exception:
-                    points = [Point(0.0, 0.0), Point(1000.0, 0.0), Point(1000.0, 1000.0), Point(0.0, 1000.0)]
-                zones[z.code] = PolygonZone(
+                    raw_polygons[z.code] = [(0.0, 0.0), (1000.0, 0.0), (1000.0, 1000.0), (0.0, 1000.0)]
+                zone_meta[z.code] = z
+        else:
+            # Fallback default industrial zones — used only when the
+            # warehouse has no zones configured at all.
+            raw_polygons["LOADING_DOCK_01"] = [(0.0, 0.0), (1920.0, 0.0), (1920.0, 1080.0), (0.0, 1080.0)]
+            raw_polygons["STAGING_BAY_01"] = [(200.0, 200.0), (800.0, 200.0), (800.0, 800.0), (200.0, 800.0)]
+
+        normalized_polygons = normalize_zone_polygons(raw_polygons)
+
+        zones: Dict[str, PolygonZone] = {}
+        for code, normalized_polygon in normalized_polygons.items():
+            z = zone_meta.get(code)
+            if z is not None:
+                zones[code] = PolygonZone(
                     zone_id=z.id,
-                    zone_code=z.code,
-                    points=points,
+                    zone_code=code,
+                    points=[Point(x, y) for x, y in normalized_polygon],
                     zone_type=z.zone_type,
                     risk_multiplier=z.risk_weight,
+                    is_restricted=z.is_restricted,
                 )
-        else:
-            # Fallback default industrial zones
-            zones["LOADING_DOCK_01"] = PolygonZone(
-                zone_id="zone-dock-1",
-                zone_code="LOADING_DOCK_01",
-                points=[Point(0.0, 0.0), Point(1920.0, 0.0), Point(1920.0, 1080.0), Point(0.0, 1080.0)],
-                zone_type="LOADING_DOCK",
-                risk_multiplier=1.4,
-            )
-            zones["STAGING_BAY_01"] = PolygonZone(
-                zone_id="zone-staging-1",
-                zone_code="STAGING_BAY_01",
-                points=[Point(200.0, 200.0), Point(800.0, 200.0), Point(800.0, 800.0), Point(200.0, 800.0)],
-                zone_type="STAGING_BAY",
-                risk_multiplier=1.2,
-            )
+            else:
+                zones[code] = PolygonZone(
+                    zone_id=f"zone-{code.lower()}",
+                    zone_code=code,
+                    points=[Point(x, y) for x, y in normalized_polygon],
+                    zone_type="LOADING_DOCK" if "DOCK" in code else "STAGING_BAY",
+                    risk_multiplier=1.4 if "DOCK" in code else 1.2,
+                )
 
         return zones
-
-    def _load_product_catalog(self) -> Dict[str, ProductContext]:
-        """Provide standard SKU catalog with physical fragility definitions."""
-        return {
-            "SKU-CARTON-STD": ProductContext(
-                sku="SKU-CARTON-STD",
-                product_name="Standard Packaging Carton",
-                category="General Goods",
-                fragility_rating=3,
-                unit_value_usd=120.0,
-                max_safe_drop_height_px=25.0,
-            ),
-            "SKU-OPTICS": ProductContext(
-                sku="SKU-OPTICS",
-                product_name="Precision Industrial Optics",
-                category="Electronics & Optics",
-                fragility_rating=5,
-                unit_value_usd=850.0,
-                max_safe_drop_height_px=15.0,
-            ),
-            "SKU-HEAVY-FURNITURE": ProductContext(
-                sku="SKU-HEAVY-FURNITURE",
-                product_name="Heavy Cabinet / Furniture",
-                category="Heavy Goods",
-                fragility_rating=4,
-                unit_value_usd=450.0,
-                max_safe_drop_height_px=10.0,
-            ),
-        }
 
     def process_video(
         self,
@@ -175,11 +173,66 @@ class AIPipelineOrchestrator:
                 warehouse_id = default_wh.id
 
         zones = self._load_spatial_zones(db, warehouse_id)
-        catalog = self._load_product_catalog()
-        enricher = ContextEnricher(catalog=catalog)
+        # No SKU master-data integration exists yet, so ContextEnricher falls
+        # back to its built-in per-object-class profiles (see
+        # ai/context/product_catalog.py) — passing no catalog override here
+        # is deliberate, not an oversight.
+        enricher = ContextEnricher()
 
         tracker = ByteTracker()
         fsm = TemporalStateMachine()
+        zone_transition_engine = ZoneTransitionEngine()
+        proximity_engine = ProximityEngine()
+
+        # Resolved once per video, not re-fetched every frame: the
+        # warehouse's declared physical footprint (for the honest
+        # UNCALIBRATED_ESTIMATE world-position fallback) and this
+        # camera's real homography if one has been calibrated (see
+        # backend/app/services/calibration_service.py — this is the
+        # spec's "MOST IMPORTANT architectural requirement": a real
+        # video-pixel -> warehouse-meters transform, not a fabricated
+        # one).
+        warehouse_row = db.query(Warehouse).filter(Warehouse.id == warehouse_id).first() if warehouse_id else None
+        homography_matrix, reprojection_error_px = calibration_service.get_active_homography(db, camera_id)
+        spatial_context = SpatialContext(
+            video_width=float(video.width or 1920),
+            video_height=float(video.height or 1080),
+            warehouse_width_m=warehouse_row.width_meters if warehouse_row else None,
+            warehouse_length_m=warehouse_row.length_meters if warehouse_row else None,
+            zones=zones,
+            homography_matrix=homography_matrix,
+            reprojection_error_px=reprojection_error_px,
+        )
+
+        def _publish_spatial_event(candidate: SpatialEventCandidate, frame_idx: int, timestamp: float) -> None:
+            event_row = spatial_event_service.create_event(
+                db=db,
+                video_id=video.id,
+                event_type=candidate.event_type,
+                severity=candidate.severity,
+                frame_number=frame_idx,
+                timestamp_seconds=timestamp,
+                description=candidate.description,
+                camera_id=camera_id,
+                warehouse_id=warehouse_id,
+                zone_id=candidate.zone_id,
+                from_zone_id=candidate.from_zone_id,
+                to_zone_id=candidate.to_zone_id,
+                involved_track_ids=candidate.involved_track_ids,
+                confidence=candidate.confidence,
+            )
+            event_bus.publish(
+                event="SPATIAL_EVENT_CREATED",
+                warehouse_id=warehouse_id,
+                data={
+                    "event_id": event_row.id,
+                    "video_id": video.id,
+                    "event_type": candidate.event_type,
+                    "severity": candidate.severity,
+                    "description": candidate.description,
+                    "timestamp_seconds": timestamp,
+                },
+            )
 
         abs_video_path = storage_service.get_file_path(video.storage_path)
         if not abs_video_path.exists():
@@ -193,6 +246,13 @@ class AIPipelineOrchestrator:
         start_time = datetime.now(timezone.utc)
         frames_count = 0
         tracks_by_frame: Dict[int, FrameTracks] = {}
+        # Buffered separately from tracks_by_frame (which stays complete
+        # for evidence generation): cleared after every periodic flush so
+        # the end-of-loop "persist whatever's left" pass never re-writes
+        # a frame that was already flushed to the DB — previously both
+        # loops drew from the same dict, so any frame divisible by 15 was
+        # persisted twice.
+        pending_track_persistence: Dict[int, FrameTracks] = {}
         detected_incidents: List[str] = []
 
         try:
@@ -206,6 +266,7 @@ class AIPipelineOrchestrator:
                 # 2. Tracking (ByteTrack)
                 frame_tracks = tracker.update(frame_dets)
                 tracks_by_frame[frame_idx] = frame_tracks
+                pending_track_persistence[frame_idx] = frame_tracks
 
                 # 3. Interactions
                 interactions = self.interaction_detector.detect_interactions(frame_tracks)
@@ -215,23 +276,54 @@ class AIPipelineOrchestrator:
 
                 # 5. Behaviour Intelligence
                 behaviour_events = self.behaviour_engine.evaluate_frame(
-                    frame_tracks, interactions, timelines, zones
+                    frame_tracks, interactions, timelines, zones,
+                    frame_width=spatial_context.video_width, frame_height=spatial_context.video_height,
                 )
+
+                # 5b. Generalized spatial events — zone transitions and
+                # proximity warnings (additive stream, see
+                # ai/spatial/event_engine.py and models/spatial_event.py;
+                # does not touch BehaviourEvent/Incident at all).
+                for track in frame_tracks.active_tracks:
+                    transition = zone_transition_engine.evaluate(
+                        track, zones, spatial_context.video_width, spatial_context.video_height
+                    )
+                    if transition:
+                        _publish_spatial_event(transition, frame_idx, frame_tracks.timestamp_seconds)
+
+                for proximity_candidate in proximity_engine.evaluate(
+                    frame_tracks.active_tracks, spatial_context.video_width, spatial_context.video_height
+                ):
+                    _publish_spatial_event(proximity_candidate, frame_idx, frame_tracks.timestamp_seconds)
 
                 # 6. Process Detected Behaviours
                 for detected_b in behaviour_events.active_behaviours:
                     primary_id = detected_b.evidence.primary_entity_id
-                    zone_code = "LOADING_DOCK_01"
-                    zone_id = None
 
-                    # Find matching zone from DB
-                    if zone_code in zones:
-                        zone_id = zones[zone_code].zone_id
+                    # Use the zone the behaviour engine actually resolved via
+                    # point-in-polygon spatial matching (evidence.zone_code) —
+                    # only a subset of rules (drag/wet-floor, zone-mismatch
+                    # placement) currently resolve one; rules that don't yet
+                    # do spatial matching fall back to the warehouse's first
+                    # configured zone rather than silently attributing every
+                    # incident to the same hardcoded dock, which corrupted
+                    # zone heatmaps/hotspot analytics downstream.
+                    zone_code = detected_b.evidence.zone_code
+                    if not zone_code or zone_code not in zones:
+                        zone_code = next(iter(zones), "LOADING_DOCK_01")
+                    zone_id = zones[zone_code].zone_id if zone_code in zones else None
 
-                    # 7. Context Enrichment
+                    # 7. Context Enrichment — resolved from the actually
+                    # detected object class (evidence.primary_class), not a
+                    # single hardcoded SKU regardless of what was seen. No
+                    # real SKU/barcode recognition exists in this pipeline,
+                    # so this always resolves to a CLASS_DEFAULT profile
+                    # today (see ai/context/product_catalog.py); the SKU
+                    # catalog path stays wired up for whenever real product
+                    # master data is integrated.
                     ctx = enricher.enrich(
                         entity_id=primary_id,
-                        sku_or_class="SKU-CARTON-STD",
+                        sku_or_class=detected_b.evidence.primary_class,
                         zone_code=zone_code,
                     )
 
@@ -262,12 +354,21 @@ class AIPipelineOrchestrator:
                     db.add(risk_assessment)
 
                     # Persist Damage Prediction
+                    # Previously: likely_damage_type looked up a field name
+                    # (`predicted_damage_type`) that doesn't exist on
+                    # DamagePredictionResult, so getattr's fallback fired on
+                    # every single event, silently persisting "ABRASION"
+                    # regardless of what DamagePredictor actually classified.
+                    # damage_status and the $-loss estimate were similarly
+                    # discarded in favor of a constant / nothing at all.
+                    # All three now persist DamagePredictor's real output.
                     damage_pred = DamagePrediction(
                         behaviour_event_id=b_event.id,
                         damage_probability=damage_res.damage_probability,
-                        likely_damage_type=getattr(damage_res, "predicted_damage_type", "ABRASION") or "ABRASION",
-                        damage_status="POTENTIAL_DAMAGE",
-                        factors_json=json.dumps([]),
+                        likely_damage_type=damage_res.likely_damage_type.value,
+                        damage_status=damage_res.damage_status.value,
+                        estimated_financial_loss_usd=damage_res.estimated_financial_loss_usd,
+                        factors_json=json.dumps(damage_res.damage_factors),
                     )
                     db.add(damage_pred)
                     db.commit()
@@ -345,8 +446,17 @@ class AIPipelineOrchestrator:
                         db.commit()
 
                         # 14. Real-time WebSocket Broadcast
+                        # Event names are uppercase to match the contract
+                        # the frontend RealtimeSocketManager actually
+                        # listens for (frontend/src/services/realtime.ts)
+                        # — this used to publish lowercase names that no
+                        # production event name has ever matched, so the
+                        # websocket carried traffic that reached zero
+                        # frontend handlers (confirmed: the only place
+                        # the lowercase form is asserted is this
+                        # project's own test suite, not the frontend).
                         event_bus.publish(
-                            event="incident_created",
+                            event="INCIDENT_CREATED",
                             warehouse_id=warehouse_id,
                             data={
                                 "incident_id": incident.id,
@@ -360,7 +470,7 @@ class AIPipelineOrchestrator:
                         )
                         if alert:
                             event_bus.publish(
-                                event="alert_created",
+                                event="ALERT_CREATED",
                                 warehouse_id=warehouse_id,
                                 data={
                                     "alert_id": alert.id,
@@ -371,9 +481,17 @@ class AIPipelineOrchestrator:
                                 },
                             )
 
-                # Persist dense trajectory track points periodically
+                # Persist dense trajectory track points periodically —
+                # every buffered frame since the last flush, not just the
+                # single most-recent one (previously only 1-in-15 frames
+                # was ever actually persisted here; the rest silently
+                # waited for the end-of-loop pass below, which is exactly
+                # why that pass existed and exactly why it re-persisted
+                # frames this block had already written).
                 if frames_count % 15 == 0:
-                    tracking_service.persist_frame_tracks(db, video.id, frame_tracks)
+                    for ft in pending_track_persistence.values():
+                        tracking_service.persist_frame_tracks(db, video.id, ft, spatial_context)
+                    pending_track_persistence.clear()
 
                 # Periodic progress updates
                 if frames_count % 10 == 0:
@@ -386,7 +504,7 @@ class AIPipelineOrchestrator:
                         progress_callback(pct, frames_count, job.total_frames)
 
                     event_bus.publish(
-                        event="video_progress",
+                        event="VIDEO_PROGRESS",
                         warehouse_id=warehouse_id,
                         data={
                             "job_id": job.id,
@@ -397,9 +515,13 @@ class AIPipelineOrchestrator:
                         },
                     )
 
-            # Persist remaining tracks
-            for ft in tracks_by_frame.values():
-                tracking_service.persist_frame_tracks(db, video.id, ft)
+            # Persist whatever's left since the last periodic flush
+            # (not every frame ever seen — tracks_by_frame stays intact
+            # above for evidence generation, pending_track_persistence
+            # is the separate, drained buffer; see its declaration).
+            for ft in pending_track_persistence.values():
+                tracking_service.persist_frame_tracks(db, video.id, ft, spatial_context)
+            pending_track_persistence.clear()
 
             # Mark job complete
             elapsed_sec = max(0.001, (datetime.now(timezone.utc) - start_time).total_seconds())
@@ -415,7 +537,7 @@ class AIPipelineOrchestrator:
             db.commit()
 
             event_bus.publish(
-                event="video_completed",
+                event="VIDEO_COMPLETED",
                 warehouse_id=warehouse_id,
                 data={
                     "job_id": job.id,

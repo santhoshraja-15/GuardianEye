@@ -13,12 +13,12 @@ export function RiskScore({ value, level, className }: RiskScoreProps) {
 
   return (
     <div
-      className={cn('inline-flex items-baseline gap-2 rounded-lg border border-white/5 bg-slate-900/70 px-3 py-2', className)}
+      className={cn('inline-flex items-baseline gap-2 rounded-full border bg-white px-3 py-2', className)}
       style={{ borderColor: tone.ring }}
     >
-      <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-slate-400">Risk</span>
+      <span className="text-[11px] uppercase tracking-[0.12em] text-[#6F7F98]">Risk</span>
       <span className="text-xl font-semibold" style={{ color: tone.color }}>{value}</span>
-      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-400">/100</span>
+      <span className="text-[10px] uppercase tracking-[0.12em] text-[#6F7F98]">/100</span>
     </div>
   );
 }

@@ -19,7 +19,7 @@ export function RiskPulse({ level, active = true, className }: RiskPulseProps) {
           boxShadow: active ? `0 0 0 6px ${tone.bg}` : 'none',
         }}
       />
-      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-slate-300">{tone.label}</span>
+      <span className="text-[10px] uppercase tracking-[0.12em] text-[#6F7F98]">{tone.label}</span>
     </span>
   );
 }

@@ -14,6 +14,8 @@ from backend.app.core.errors import (
     unhandled_exception_handler,
 )
 from backend.app.core.logging import logger, setup_logging
+from backend.app.database.schema_sync import sync_additive_columns
+from backend.app.database.session import engine
 
 
 @asynccontextmanager
@@ -25,6 +27,7 @@ async def lifespan(app: FastAPI):
     setup_logging()
     logger.info(f"Initializing {settings.PROJECT_NAME} v{settings.VERSION} [{settings.ENVIRONMENT}]")
     logger.info(f"Loaded config: DB={settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}, AI_DEVICE={settings.YOLO_DEVICE}")
+    sync_additive_columns(engine)
     yield
     # 2. Shutdown
     logger.info(f"Shutting down {settings.PROJECT_NAME} cleanly.")
